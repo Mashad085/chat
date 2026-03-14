@@ -20,6 +20,7 @@ function createApp() {
   app.use('/api',         require('./src/routes/chat'));
   app.use('/api/admin',   require('./src/routes/admin'));
   app.use('/api/profile', require('./src/routes/profile'));
+  app.use('/api',         require('./src/routes/status'));
 
   app.get(['/admin', '/admin/*path'], (req, res) =>
     res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html')));

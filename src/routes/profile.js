@@ -9,13 +9,13 @@ const { SessionCache } = require('../config/redis');
 router.get('/', requireAuth, (req, res) => {
   const u = UserRepo.findById(req.user.id);
   if (!u) return res.status(404).json({ error: 'User tidak ditemukan' });
-  res.json({ id: u.id, username: u.username, email: u.email||'', bio: u.bio||'', color: u.color, avatarUrl: u.avatar_url||'', status: u.status });
+  res.json({ id: u.id, username: u.username, email: u.email||'', bio: u.bio||'', color: u.color, avatarUrl: u.avatar_url||'', bgUrl: u.bg_url||'', website: u.website||'', status: u.status });
 });
 
 // PUT /api/profile
 router.put('/', requireAuth, (req, res) => {
-  const { email, bio, color } = req.body;
-  updateProfile(req.user.id, { email, bio, color });
+  const { email, bio, color, bgUrl, website } = req.body;
+  updateProfile(req.user.id, { email, bio, color, bgUrl, website });
   AuditRepo.log(req.user.id, 'update_profile');
   res.json({ ok: true });
 });

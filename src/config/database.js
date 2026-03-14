@@ -96,12 +96,65 @@ function applySchema() {
     label_id TEXT NOT NULL,
     PRIMARY KEY(room_id, label_id)
   )`);
-  // Add description column to rooms if not exists
+  db.run(`CREATE TABLE IF NOT EXISTS statuses (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    media_url TEXT,
+    media_type TEXT DEFAULT 'text',
+    caption TEXT,
+    bg_color TEXT DEFAULT '#00a884',
+    created_at INTEGER DEFAULT (strftime('%s','now')),
+    expires_at INTEGER,
+    view_count INTEGER DEFAULT 0
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS status_views (
+    status_id TEXT NOT NULL,
+    viewer_id TEXT NOT NULL,
+    viewed_at INTEGER DEFAULT (strftime('%s','now')),
+    PRIMARY KEY(status_id, viewer_id)
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS channels (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    owner_id TEXT NOT NULL,
+    is_public INTEGER DEFAULT 1,
+    avatar_url TEXT,
+    bg_url TEXT,
+    link TEXT,
+    subscriber_count INTEGER DEFAULT 0,
+    created_at INTEGER DEFAULT (strftime('%s','now'))
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS channel_members (
+    channel_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    role TEXT DEFAULT 'subscriber',
+    joined_at INTEGER DEFAULT (strftime('%s','now')),
+    PRIMARY KEY(channel_id, user_id)
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS channel_posts (
+    id TEXT PRIMARY KEY,
+    channel_id TEXT NOT NULL,
+    sender_id TEXT NOT NULL,
+    text TEXT,
+    file_url TEXT,
+    file_name TEXT,
+    file_type TEXT,
+    is_product INTEGER DEFAULT 0,
+    product_name TEXT,
+    product_price TEXT,
+    product_desc TEXT,
+    created_at INTEGER DEFAULT (strftime('%s','now')),
+    is_deleted INTEGER DEFAULT 0
+  )`);
   try { db.run(`ALTER TABLE rooms ADD COLUMN description TEXT`); } catch(e) {}
-  // Add label columns if not exists
+  try { db.run(`ALTER TABLE users ADD COLUMN bg_url TEXT`); } catch(e) {}
+  try { db.run(`ALTER TABLE users ADD COLUMN website TEXT`); } catch(e) {}
   db.run(`CREATE INDEX IF NOT EXISTS idx_room_labels ON room_labels(room_id)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_msg_room ON messages(room_id, created_at)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_audit ON audit_logs(created_at DESC)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_statuses ON statuses(user_id, expires_at)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_channel_posts ON channel_posts(channel_id, created_at)`);
   logger.info('[db] Schema applied');
 }
 
@@ -266,12 +319,14 @@ const FriendRepo = {
 };
 
 // ─── PROFILE UPDATE ──────────────────────────────────────
-function updateProfile(userId, { email, bio, avatarUrl, color }) {
+function updateProfile(userId, { email, bio, avatarUrl, color, bgUrl, website }) {
   const parts = [], vals = [];
   if (email !== undefined)     { parts.push('email=?');      vals.push(email); }
   if (bio !== undefined)       { parts.push('bio=?');        vals.push(bio); }
   if (avatarUrl !== undefined) { parts.push('avatar_url=?'); vals.push(avatarUrl); }
   if (color !== undefined)     { parts.push('color=?');      vals.push(color); }
+  if (bgUrl !== undefined)     { parts.push('bg_url=?');     vals.push(bgUrl); }
+  if (website !== undefined)   { parts.push('website=?');    vals.push(website); }
   if (parts.length) { vals.push(userId); run(`UPDATE users SET ${parts.join(',')} WHERE id=?`, vals); }
 }
 
@@ -297,4 +352,114 @@ const LabelRepo = {
   findById: (id) => queryOne('SELECT * FROM labels WHERE id=?', [id]),
 };
 
-module.exports = Object.assign(module.exports || {}, { LabelRepo });
+module.exports = Object.assign(module.exports||{}, { LabelRepo });
+// ─── STATUS REPO ─────────────────────────────────────────
+const StatusRepo = {
+  create({ id, userId, mediaUrl, mediaType, caption, bgColor }) {
+    const expiresAt = Math.floor(Date.now()/1000) + 86400; // 24 hours
+    run('INSERT INTO statuses(id,user_id,media_url,media_type,caption,bg_color,expires_at) VALUES(?,?,?,?,?,?,?)',
+      [id, userId, mediaUrl||null, mediaType||'text', caption||null, bgColor||'#00a884', expiresAt]);
+  },
+  getForUser(viewerId) {
+    // Get statuses from friends + self, not expired
+    return query(`
+      SELECT s.*, u.username, u.color, u.avatar_url,
+        CASE WHEN sv.viewer_id IS NOT NULL THEN 1 ELSE 0 END as viewed
+      FROM statuses s
+      JOIN users u ON s.user_id=u.id
+      LEFT JOIN status_views sv ON sv.status_id=s.id AND sv.viewer_id=?
+      WHERE s.expires_at > strftime('%s','now')
+      AND (s.user_id=? OR s.user_id IN (
+        SELECT friend_id FROM friendships WHERE user_id=? AND status='accepted'
+      ))
+      ORDER BY s.created_at DESC`, [viewerId, viewerId, viewerId]);
+  },
+  getByUser(userId) {
+    return query(`SELECT s.*, u.username, u.color, u.avatar_url FROM statuses s
+      JOIN users u ON s.user_id=u.id
+      WHERE s.user_id=? AND s.expires_at > strftime('%s','now')
+      ORDER BY s.created_at DESC`, [userId]);
+  },
+  markViewed(statusId, viewerId) {
+    run('INSERT OR IGNORE INTO status_views(status_id,viewer_id) VALUES(?,?)', [statusId, viewerId]);
+    run('UPDATE statuses SET view_count=view_count+1 WHERE id=? AND user_id!=?', [statusId, viewerId]);
+  },
+  delete(id, userId) { run('DELETE FROM statuses WHERE id=? AND user_id=?', [id, userId]); },
+  cleanExpired() { run(`DELETE FROM statuses WHERE expires_at <= strftime('%s','now')`); },
+};
+
+// ─── CHANNEL REPO ─────────────────────────────────────────
+const ChannelRepo = {
+  create({ id, name, description, ownerId, isPublic, avatarUrl, link }) {
+    run('INSERT INTO channels(id,name,description,owner_id,is_public,avatar_url,link) VALUES(?,?,?,?,?,?,?)',
+      [id, name, description||'', ownerId, isPublic?1:0, avatarUrl||null, link||null]);
+    // Owner auto-subscribes
+    run('INSERT OR IGNORE INTO channel_members(channel_id,user_id,role) VALUES(?,?,?)', [id, ownerId, 'owner']);
+  },
+  getAll(userId) {
+    return query(`SELECT c.*, u.username owner_name,
+      CASE WHEN cm.user_id IS NOT NULL THEN 1 ELSE 0 END as is_subscribed,
+      (SELECT COUNT(*) FROM channel_members WHERE channel_id=c.id) sub_count,
+      (SELECT COUNT(*) FROM channel_posts WHERE channel_id=c.id AND is_deleted=0) post_count
+      FROM channels c JOIN users u ON c.owner_id=u.id
+      LEFT JOIN channel_members cm ON cm.channel_id=c.id AND cm.user_id=?
+      ORDER BY c.created_at DESC`, [userId]);
+  },
+  findById(id, userId) {
+    return queryOne(`SELECT c.*, u.username owner_name,
+      CASE WHEN cm.user_id IS NOT NULL THEN 1 ELSE 0 END as is_subscribed,
+      cm.role as my_role,
+      (SELECT COUNT(*) FROM channel_members WHERE channel_id=c.id) sub_count
+      FROM channels c JOIN users u ON c.owner_id=u.id
+      LEFT JOIN channel_members cm ON cm.channel_id=c.id AND cm.user_id=?
+      WHERE c.id=?`, [userId||'', id]);
+  },
+  subscribe(channelId, userId) {
+    run('INSERT OR IGNORE INTO channel_members(channel_id,user_id,role) VALUES(?,?,?)', [channelId, userId, 'subscriber']);
+  },
+  unsubscribe(channelId, userId) {
+    run('DELETE FROM channel_members WHERE channel_id=? AND user_id=? AND role!=?', [channelId, userId, 'owner']);
+  },
+  getSubscribed(userId) {
+    return query(`SELECT c.*, u.username owner_name, cm.role my_role,
+      (SELECT COUNT(*) FROM channel_members WHERE channel_id=c.id) sub_count
+      FROM channel_members cm JOIN channels c ON cm.channel_id=c.id
+      JOIN users u ON c.owner_id=u.id
+      WHERE cm.user_id=? ORDER BY cm.joined_at DESC`, [userId]);
+  },
+  update(id, { name, description, isPublic, avatarUrl, bgUrl, link }) {
+    const parts=[], vals=[];
+    if (name!==undefined){parts.push('name=?');vals.push(name);}
+    if (description!==undefined){parts.push('description=?');vals.push(description);}
+    if (isPublic!==undefined){parts.push('is_public=?');vals.push(isPublic?1:0);}
+    if (avatarUrl!==undefined){parts.push('avatar_url=?');vals.push(avatarUrl);}
+    if (bgUrl!==undefined){parts.push('bg_url=?');vals.push(bgUrl);}
+    if (link!==undefined){parts.push('link=?');vals.push(link);}
+    if (parts.length){vals.push(id);run(`UPDATE channels SET ${parts.join(',')} WHERE id=?`,vals);}
+  },
+  delete(id) {
+    run('DELETE FROM channel_members WHERE channel_id=?', [id]);
+    run('DELETE FROM channel_posts WHERE channel_id=?', [id]);
+    run('DELETE FROM channels WHERE id=?', [id]);
+  },
+};
+
+// ─── CHANNEL POST REPO ────────────────────────────────────
+const ChannelPostRepo = {
+  create({ id, channelId, senderId, text, fileUrl, fileName, fileType, isProduct, productName, productPrice, productDesc }) {
+    run(`INSERT INTO channel_posts(id,channel_id,sender_id,text,file_url,file_name,file_type,is_product,product_name,product_price,product_desc)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?)`,
+      [id, channelId, senderId, text||null, fileUrl||null, fileName||null, fileType||null,
+       isProduct?1:0, productName||null, productPrice||null, productDesc||null]);
+  },
+  getByChannel(channelId, limit=50) {
+    return query(`SELECT cp.*, u.username sender_name, u.color sender_color, u.avatar_url sender_avatar
+      FROM channel_posts cp JOIN users u ON cp.sender_id=u.id
+      WHERE cp.channel_id=? AND cp.is_deleted=0
+      ORDER BY cp.created_at DESC LIMIT ?`, [channelId, limit]);
+  },
+  delete(id) { run('UPDATE channel_posts SET is_deleted=1 WHERE id=?', [id]); },
+};
+
+module.exports = Object.assign(module.exports||{}, { StatusRepo, ChannelRepo, ChannelPostRepo, updateProfile, updatePassword, FriendRepo });
+
