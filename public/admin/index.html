@@ -2,675 +2,792 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ChatApp Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Admin — ChatApp</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0a0f13;--bg2:#111920;--bg3:#1a2530;--bg4:#202f3a;
-  --acc:#00a884;--accl:#00cf9d;--accd:#00796b;
-  --danger:#ef4444;--warn:#f59e0b;--info:#3b82f6;--success:#22c55e;
-  --tp:#e2e8f0;--ts:#94a3b8;--tm:#64748b;--brd:rgba(255,255,255,0.07);
-  --card:rgba(255,255,255,0.03);--mono:'JetBrains Mono',monospace;
+  --bg:#0f1923;--bg2:#1a2433;--bg3:#243447;--bg4:#2d3f52;
+  --acc:#00a884;--accl:#00cf9d;--accd:#007a60;
+  --tp:#e9edef;--ts:#8696a0;--tm:#667781;
+  --brd:rgba(255,255,255,.07);
+  --success:#22c55e;--warn:#f59e0b;--danger:#ef4444;--info:#3b82f6;--purple:#8b5cf6;
 }
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--tp);height:100vh;overflow:hidden;display:flex}
+html,body{height:100%;background:var(--bg);color:var(--tp);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px}
+*{scrollbar-width:thin;scrollbar-color:var(--bg3) transparent}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:var(--bg3)}
 
-/* SIDEBAR NAV */
-.nav{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--brd);display:flex;flex-direction:column;padding:0}
-.nav-brand{padding:20px 20px 16px;border-bottom:1px solid var(--brd)}
-.nav-brand h1{font-size:16px;font-weight:700;color:var(--tp);display:flex;align-items:center;gap:8px}
-.nav-brand span{font-size:11px;color:var(--acc);font-family:var(--mono);background:rgba(0,168,132,.12);padding:2px 8px;border-radius:20px}
-.nav-items{flex:1;padding:12px 0;overflow-y:auto}
-.nav-section{padding:8px 16px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tm)}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;color:var(--ts);font-size:14px;font-weight:500;border-left:3px solid transparent;transition:all .15s;margin:1px 0}
+/* ── LAYOUT ── */
+.shell{display:flex;height:100vh}
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--brd);display:flex;flex-direction:column;flex-shrink:0;transition:width .25s}
+.sidebar.collapsed{width:0;overflow:hidden}
+.sb-logo{padding:18px 16px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--brd)}
+.sb-logo svg{width:32px;height:32px;flex-shrink:0}
+.sb-logo span{font-size:16px;font-weight:700;color:var(--tp);white-space:nowrap}
+.sb-nav{flex:1;padding:8px 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;color:var(--ts);transition:all .15s;border-left:3px solid transparent;white-space:nowrap;position:relative}
 .nav-item:hover{background:rgba(255,255,255,.04);color:var(--tp)}
 .nav-item.active{background:rgba(0,168,132,.1);color:var(--acc);border-left-color:var(--acc)}
 .nav-item svg{width:18px;height:18px;flex-shrink:0}
-.nav-badge{margin-left:auto;background:var(--danger);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
-.nav-footer{padding:16px;border-top:1px solid var(--brd)}
-.nav-user{display:flex;align-items:center;gap:10px}
-.nav-user-av{width:32px;height:32px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
-.nav-user-info{flex:1;min-width:0}
-.nav-user-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nav-user-role{font-size:11px;color:var(--acc)}
+.nav-item span{font-size:13.5px;font-weight:500}
+.nav-badge{background:var(--danger);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;padding:0 4px;display:flex;align-items:center;justify-content:center;margin-left:auto}
+.sb-footer{padding:12px 16px;border-top:1px solid var(--brd)}
+.sb-user{display:flex;align-items:center;gap:9px}
+.sb-av{width:32px;height:32px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+.sb-uinfo{flex:1;min-width:0}
+.sb-uname{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-urole{font-size:11px;color:var(--ts)}
 
-/* MAIN */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.topbar{height:56px;background:var(--bg2);border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0}
-.topbar-title{font-size:18px;font-weight:700;color:var(--tp)}
-.topbar-right{display:flex;align-items:center;gap:12px}
-.topbar-badge{display:flex;align-items:center;gap:6px;font-size:12px;padding:5px 12px;border-radius:20px;font-weight:600}
-.badge-connected{background:rgba(34,197,94,.12);color:var(--success);border:1px solid rgba(34,197,94,.2)}
-.badge-disconnected{background:rgba(239,68,68,.12);color:var(--danger);border:1px solid rgba(239,68,68,.2)}
-.dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.ibtn{width:36px;height:36px;border-radius:8px;background:none;border:1px solid var(--brd);color:var(--ts);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:inherit}
-.ibtn:hover{background:var(--bg3);color:var(--tp);border-color:rgba(255,255,255,.12)}
-.ibtn svg{width:18px;height:18px}
-.content{flex:1;overflow-y:auto;padding:24px}
-.content::-webkit-scrollbar{width:5px}
-.content::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
+.topbar{display:flex;align-items:center;padding:0 20px;height:56px;background:var(--bg2);border-bottom:1px solid var(--brd);flex-shrink:0;gap:12px}
+.menu-toggle{width:36px;height:36px;border-radius:8px;background:none;border:none;color:var(--icon,var(--ts));cursor:pointer;display:flex;align-items:center;justify-content:center}
+.menu-toggle:hover{background:rgba(255,255,255,.06)}
+.menu-toggle svg{width:20px;height:20px}
+.topbar h2{font-size:16px;font-weight:700;flex:1}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-btn{padding:7px 14px;border-radius:8px;border:none;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:6px}
+.tb-btn svg{width:14px;height:14px}
+.tb-acc{background:var(--acc);color:#fff}
+.tb-acc:active{background:var(--accd)}
+.tb-ghost{background:rgba(255,255,255,.06);color:var(--ts)}
+.tb-ghost:hover{background:rgba(255,255,255,.1);color:var(--tp)}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-green{background:var(--success)}
+.dot-yellow{background:var(--warn)}
+.dot-red{background:var(--danger)}
 
-/* PANELS */
+.content{flex:1;overflow-y:auto;padding:20px}
+
+/* ── PANELS ── */
 .panel{display:none}
 .panel.active{display:block}
 
-/* STAT CARDS */
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
-.stat-card{background:var(--bg2);border:1px solid var(--brd);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:border-color .2s}
-.stat-card:hover{border-color:rgba(0,168,132,.3)}
-.stat-card::before{content:'';position:absolute;top:0;right:0;width:80px;height:80px;background:radial-gradient(circle,rgba(0,168,132,.08),transparent);border-radius:50%;transform:translate(20px,-20px)}
-.stat-label{font-size:12px;color:var(--ts);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
-.stat-val{font-size:28px;font-weight:700;font-family:var(--mono);color:var(--tp)}
-.stat-sub{font-size:12px;color:var(--ts);margin-top:4px}
-.stat-icon{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center}
-.stat-icon svg{width:20px;height:20px}
-.si-green{background:rgba(0,168,132,.15);color:var(--acc)}
-.si-blue{background:rgba(59,130,246,.15);color:var(--info)}
-.si-yellow{background:rgba(245,158,11,.15);color:var(--warn)}
-.si-red{background:rgba(239,68,68,.15);color:var(--danger)}
-.si-purple{background:rgba(139,92,246,.15);color:#8b5cf6}
-.si-teal{background:rgba(20,184,166,.15);color:#14b8a6}
-.si-orange{background:rgba(249,115,22,.15);color:#f97316}
+/* ── CARDS ── */
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:900px){.grid-4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.grid-4{grid-template-columns:1fr 1fr}}
+.stat-card{background:var(--bg2);border:1px solid var(--brd);border-radius:14px;padding:16px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;opacity:.08}
+.sc-label{font-size:11.5px;font-weight:600;color:var(--ts);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.sc-val{font-size:26px;font-weight:800;line-height:1}
+.sc-sub{font-size:11px;color:var(--ts);margin-top:6px}
+.sc-icon{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;opacity:.8}
+.sc-icon svg{width:18px;height:18px}
 
-/* SECTION */
-.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.section-title{font-size:16px;font-weight:700;color:var(--tp)}
-.section-hint{font-size:12px;color:var(--ts)}
-.card{background:var(--bg2);border:1px solid var(--brd);border-radius:14px;overflow:hidden}
-.card-hdr{padding:14px 18px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
-.card-title{font-size:14px;font-weight:700;color:var(--tp)}
-
-/* TABLE */
-.tbl{width:100%;border-collapse:collapse}
-.tbl th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ts);border-bottom:1px solid var(--brd);background:rgba(0,0,0,.2)}
-.tbl td{padding:10px 14px;font-size:13px;color:var(--tp);border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
-.tbl tr:hover td{background:rgba(255,255,255,.03)}
-.tbl tr:last-child td{border-bottom:none}
-
-/* TAGS / BADGES */
-.tag{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
-.tag-green{background:rgba(34,197,94,.12);color:var(--success)}
-.tag-red{background:rgba(239,68,68,.12);color:var(--danger)}
-.tag-blue{background:rgba(59,130,246,.12);color:var(--info)}
-.tag-yellow{background:rgba(245,158,11,.12);color:var(--warn)}
-.tag-gray{background:rgba(100,116,139,.12);color:var(--ts)}
-.tag-acc{background:rgba(0,168,132,.12);color:var(--acc)}
-
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
-.btn-acc{background:var(--acc);color:#fff}
-.btn-acc:hover{background:var(--accl)}
-.btn-red{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.2)}
+/* ── TABLES ── */
+.card{background:var(--bg2);border:1px solid var(--brd);border-radius:14px;overflow:hidden;margin-bottom:16px}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;border-bottom:1px solid var(--brd)}
+.card-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.card-title svg{width:16px;height:16px;color:var(--acc)}
+.card-badge{background:rgba(0,168,132,.15);color:var(--acc);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{padding:10px 14px;text-align:left;font-size:11.5px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.4px;background:rgba(0,0,0,.2);white-space:nowrap}
+td{padding:10px 14px;font-size:13.5px;border-bottom:1px solid var(--brd)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-green{background:rgba(34,197,94,.15);color:var(--success)}
+.badge-red{background:rgba(239,68,68,.15);color:var(--danger)}
+.badge-yellow{background:rgba(245,158,11,.15);color:var(--warn)}
+.badge-blue{background:rgba(59,130,246,.15);color:var(--info)}
+.badge-purple{background:rgba(139,92,246,.15);color:var(--purple)}
+.badge-gray{background:rgba(134,150,160,.1);color:var(--ts)}
+.act-btns{display:flex;gap:6px;flex-wrap:wrap}
+.act-btn{padding:5px 11px;border-radius:7px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-red{background:rgba(239,68,68,.15);color:var(--danger)}
 .btn-red:hover{background:rgba(239,68,68,.25)}
-.btn-blue{background:rgba(59,130,246,.15);color:var(--info);border:1px solid rgba(59,130,246,.2)}
+.btn-green{background:rgba(34,197,94,.15);color:var(--success)}
+.btn-green:hover{background:rgba(34,197,94,.25)}
+.btn-blue{background:rgba(59,130,246,.15);color:var(--info)}
 .btn-blue:hover{background:rgba(59,130,246,.25)}
-.btn-gray{background:rgba(255,255,255,.06);color:var(--ts);border:1px solid var(--brd)}
-.btn-gray:hover{background:rgba(255,255,255,.1);color:var(--tp)}
-.btn svg{width:14px;height:14px}
+.btn-gray{background:rgba(134,150,160,.1);color:var(--ts)}
+.btn-gray:hover{background:rgba(134,150,160,.2)}
 
-/* CHART */
-.chart-wrap{padding:16px 18px;height:160px;display:flex;align-items:flex-end;gap:6px}
-.bar-grp{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
-.bar{width:100%;border-radius:4px 4px 0 0;background:var(--acc);transition:height .5s ease;min-height:4px}
-.bar-label{font-size:10px;color:var(--ts);font-family:var(--mono)}
+/* ── CHART ── */
+.chart-wrap{padding:16px 18px}
+.chart-bars{display:flex;align-items:flex-end;gap:6px;height:120px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar-fill{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(to top,var(--acc),var(--accl));min-height:3px;transition:height .6s ease}
+.bar-label{font-size:10px;color:var(--ts);text-align:center;white-space:nowrap}
+.bar-count{font-size:10px;color:var(--tp);font-weight:600;text-align:center}
 
-/* LOG */
-.log-entry{display:flex;align-items:flex-start;gap:10px;padding:8px 14px;border-bottom:1px solid rgba(255,255,255,.03);font-size:12.5px}
-.log-entry:last-child{border-bottom:none}
-.log-time{font-family:var(--mono);color:var(--tm);flex-shrink:0;font-size:11px;padding-top:1px}
-.log-action{font-weight:600;min-width:140px;flex-shrink:0}
-.log-detail{color:var(--ts);flex:1;word-break:break-all}
-.log-user{color:var(--acc);margin-right:4px}
+/* ── BROKER STATS ── */
+.broker-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}
+@media(max-width:400px){.broker-grid{grid-template-columns:1fr}}
+.bstat{background:var(--bg3);border-radius:10px;padding:14px}
+.bstat-label{font-size:11px;color:var(--ts);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.bstat-val{font-size:22px;font-weight:800}
+.broker-live{max-height:340px;overflow-y:auto}
+.live-event{display:flex;align-items:flex-start;gap:10px;padding:9px 16px;border-bottom:1px solid var(--brd);animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
+.le-topic{font-size:12px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(0,168,132,.15);color:var(--acc);white-space:nowrap;flex-shrink:0}
+.le-payload{font-size:12px;color:var(--ts);font-family:monospace;flex:1;word-break:break-all;line-height:1.4}
+.le-time{font-size:11px;color:var(--tm);flex-shrink:0}
+.topics-list{padding:0 16px 14px}
+.topic-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--brd)}
+.topic-row:last-child{border-bottom:none}
+.topic-name{font-size:13px;font-family:monospace;color:var(--tp);flex:1}
+.topic-bar-wrap{width:100px;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.topic-bar{height:100%;background:var(--acc);border-radius:3px;transition:width .4s}
+.topic-count{font-size:13px;font-weight:700;color:var(--acc);min-width:28px;text-align:right}
+.mode-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600}
 
-/* BROKER */
-.broker-topic{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid rgba(255,255,255,.03);font-size:13px}
-.broker-count{font-family:var(--mono);color:var(--acc);font-weight:600}
-.broker-event{padding:8px 14px;border-bottom:1px solid rgba(255,255,255,.03)}
-.broker-event-topic{font-family:var(--mono);font-size:11px;color:var(--acc);margin-bottom:2px}
-.broker-event-payload{font-family:var(--mono);font-size:11px;color:var(--ts);white-space:pre-wrap;word-break:break-all}
+/* ── ONLINE DOTS ── */
+.online-list{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px}
+.online-chip{display:flex;align-items:center;gap:6px;background:var(--bg3);border-radius:20px;padding:5px 12px 5px 7px}
+.online-chip-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.online-chip span{font-size:13px;font-weight:500}
 
-/* BROADCAST BOX */
-.broadcast-box{padding:16px 18px}
-.bc-inp{width:100%;background:var(--bg3);border:1px solid var(--brd);border-radius:10px;padding:10px 14px;color:var(--tp);font-family:inherit;font-size:14px;outline:none;margin-bottom:10px;caret-color:var(--acc)}
-.bc-inp:focus{border-color:var(--acc)}
-.bc-inp::placeholder{color:var(--tm)}
+/* ── BROADCAST ── */
+.bcast-form{padding:16px}
+.bcast-inp{width:100%;background:var(--bg3);border:1.5px solid transparent;border-radius:10px;padding:10px 13px;font-size:14px;color:var(--tp);font-family:inherit;outline:none;resize:vertical;min-height:80px;transition:border-color .2s;caret-color:var(--acc)}
+.bcast-inp:focus{border-color:var(--acc)}
+.bcast-inp::placeholder{color:var(--tm)}
 
-/* ONLINE LIST */
-.online-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(0,168,132,.08);border:1px solid rgba(0,168,132,.15);border-radius:20px;font-size:12px;color:var(--tp);margin:3px}
-.online-dot{width:7px;height:7px;border-radius:50%;background:var(--acc)}
+/* ── AUDIT LOG COLORS ── */
+.al-login{color:var(--success)}
+.al-logout{color:var(--ts)}
+.al-ban{color:var(--danger)}
+.al-unban{color:var(--success)}
+.al-broadcast{color:var(--info)}
+.al-delete{color:var(--warn)}
+.al-register{color:var(--purple)}
+.al-other{color:var(--ts)}
 
-/* MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
-.modal{background:var(--bg2);border:1px solid var(--brd);border-radius:16px;padding:28px;width:420px;box-shadow:0 24px 80px rgba(0,0,0,.6)}
-.modal h3{font-size:18px;font-weight:700;margin-bottom:8px}
-.modal p{font-size:14px;color:var(--ts);margin-bottom:20px;line-height:1.6}
-.modal-field{margin-bottom:14px}
-.modal-field label{display:block;font-size:12px;font-weight:600;color:var(--ts);margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px}
-.modal-field input{width:100%;background:var(--bg3);border:1px solid var(--brd);border-radius:8px;padding:10px 12px;color:var(--tp);font-family:inherit;font-size:14px;outline:none;caret-color:var(--acc)}
-.modal-field input:focus{border-color:var(--acc)}
-.modal-btns{display:flex;gap:10px;justify-content:flex-end}
-.empty-state{padding:40px;text-align:center;color:var(--tm);font-size:14px}
+/* ── MODAL ── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-ov.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--brd);border-radius:16px;padding:24px;width:100%;max-width:420px}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:16px}
+.mfld{margin-bottom:13px}
+.mfld label{display:block;font-size:11px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.mfld textarea,.mfld input{width:100%;background:var(--bg3);border:1.5px solid transparent;border-radius:9px;padding:9px 12px;font-size:14px;color:var(--tp);font-family:inherit;outline:none;resize:vertical;transition:border-color .2s;caret-color:var(--acc)}
+.mfld textarea:focus,.mfld input:focus{border-color:var(--acc)}
+.modal-btns{display:flex;gap:10px;margin-top:16px}
+.mbtn{flex:1;padding:10px;border-radius:9px;font-size:13.5px;font-weight:700;border:none;cursor:pointer;font-family:inherit;transition:all .15s}
+.mbtn-acc{background:var(--acc);color:#fff}
+.mbtn-gray{background:var(--bg3);color:var(--ts)}
 
-/* TOAST */
-.toast{position:fixed;bottom:20px;right:20px;background:var(--bg3);border:1px solid var(--acc);color:var(--tp);padding:12px 18px;border-radius:10px;font-size:13px;z-index:9999;transition:all .3s;transform:translateY(80px);opacity:0;max-width:300px}
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg3);border:1px solid var(--brd);border-left:3px solid var(--acc);color:var(--tp);padding:11px 16px;border-radius:10px;font-size:13.5px;z-index:200;transform:translateY(60px);opacity:0;transition:all .28s ease;pointer-events:none;max-width:320px}
 .toast.show{transform:translateY(0);opacity:1}
-
-*{scrollbar-width:thin;scrollbar-color:var(--bg4) transparent}
+.empty-state{padding:40px;text-align:center;color:var(--ts);font-size:14px}
+.truncate{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav class="nav">
-  <div class="nav-brand">
-    <h1>
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00a884" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-      ChatApp
-      <span>ADMIN</span>
-    </h1>
-  </div>
-  <div class="nav-items">
-    <div class="nav-section">Overview</div>
-    <div class="nav-item active" onclick="showPanel('dashboard')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      Dashboard
+<div class="shell">
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="16" fill="#00a884"/><path d="M16 6C10.5 6 6 10.5 6 16c0 1.7.4 3.3 1.2 4.7L6 26l5.5-1.4c1.3.7 2.8 1.1 4.5 1.1 5.5 0 10-4.5 10-10S21.5 6 16 6z" fill="white"/></svg>
+      <span>ChatApp Admin</span>
     </div>
-    <div class="nav-section">Monitoring</div>
-    <div class="nav-item" onclick="showPanel('users')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      Pengguna
-    </div>
-    <div class="nav-item" onclick="showPanel('rooms')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      Ruang Chat
-    </div>
-    <div class="nav-item" onclick="showPanel('sessions')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Sesi Aktif
-    </div>
-    <div class="nav-section">Keamanan</div>
-    <div class="nav-item" onclick="showPanel('flagged')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
-      Pesan Flagged
-      <span class="nav-badge" id="flagBadge" style="display:none">0</span>
-    </div>
-    <div class="nav-item" onclick="showPanel('audit')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      Audit Log
-    </div>
-    <div class="nav-section">Infrastruktur</div>
-    <div class="nav-item" onclick="showPanel('broker')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-      Message Broker
-    </div>
-    <div class="nav-item" onclick="showPanel('broadcast')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-      Broadcast
-    </div>
-  </div>
-  <div class="nav-footer">
-    <div class="nav-user">
-      <div class="nav-user-av" id="navAv">A</div>
-      <div class="nav-user-info">
-        <div class="nav-user-name" id="navName">Admin</div>
-        <div class="nav-user-role">Super Admin</div>
+    <nav class="sb-nav" id="sbNav">
+      <div class="nav-item active" data-panel="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span>Dashboard</span>
       </div>
-      <button class="ibtn" onclick="window.location='/'">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <div class="nav-item" data-panel="users">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Pengguna</span>
+      </div>
+      <div class="nav-item" data-panel="rooms">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Ruang Chat</span>
+      </div>
+      <div class="nav-item" data-panel="sessions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>Sesi Aktif</span>
+      </div>
+      <div class="nav-item" data-panel="flagged">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+        <span>Pesan Flagged</span>
+        <span class="nav-badge" id="flaggedBadge" style="display:none">0</span>
+      </div>
+      <div class="nav-item" data-panel="audit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>Audit Log</span>
+      </div>
+      <div class="nav-item" data-panel="broker">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Message Broker</span>
+        <span class="status-dot dot-green" id="brokerDot" style="margin-left:auto"></span>
+      </div>
+      <div class="nav-item" data-panel="broadcast">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16l.92.92z"/></svg>
+        <span>Broadcast</span>
+      </div>
+    </nav>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-av" id="sbAv">A</div>
+        <div class="sb-uinfo">
+          <div class="sb-uname" id="sbName">Admin</div>
+          <div class="sb-urole">Administrator</div>
+        </div>
+        <button onclick="doLogout()" title="Keluar" style="background:none;border:none;color:var(--ts);cursor:pointer;padding:4px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-toggle" onclick="toggleSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-    </div>
-  </div>
-</nav>
-
-<!-- MAIN -->
-<div class="main">
-  <div class="topbar">
-    <div class="topbar-title" id="topTitle">Dashboard</div>
-    <div class="topbar-right">
-      <div class="topbar-badge badge-disconnected" id="connBadge"><div class="dot"></div>Menghubungkan...</div>
-      <button class="ibtn" onclick="loadAll()" title="Refresh">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-      </button>
-    </div>
-  </div>
-  <div class="content">
-
-    <!-- DASHBOARD -->
-    <div class="panel active" id="panel-dashboard">
-      <div class="stat-grid" id="statGrid">
-        <div class="stat-card"><div class="stat-label">Total Pengguna</div><div class="stat-val" id="s-users">—</div><div class="stat-sub">Terdaftar</div><div class="stat-icon si-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div>
-        <div class="stat-card"><div class="stat-label">Total Pesan</div><div class="stat-val" id="s-msgs">—</div><div class="stat-sub">Di semua room</div><div class="stat-icon si-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div></div>
-        <div class="stat-card"><div class="stat-label">Sesi Aktif</div><div class="stat-val" id="s-sess">—</div><div class="stat-sub">Terautentikasi</div><div class="stat-icon si-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div></div>
-        <div class="stat-card"><div class="stat-label">Pesan Flagged</div><div class="stat-val" id="s-flag">—</div><div class="stat-sub">Perlu ditinjau</div><div class="stat-icon si-yellow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></div></div>
-        <div class="stat-card"><div class="stat-label">User Diblokir</div><div class="stat-val" id="s-ban">—</div><div class="stat-sub">Suspended</div><div class="stat-icon si-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div></div>
-        <div class="stat-card"><div class="stat-label">Broker Events</div><div class="stat-val" id="s-broker">—</div><div class="stat-sub">Total dikirim</div><div class="stat-icon si-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div></div>
-        <div class="stat-card"><div class="stat-label">Ruang Chat</div><div class="stat-val" id="s-rooms">—</div><div class="stat-sub">Aktif</div><div class="stat-icon si-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
-        <div class="card">
-          <div class="card-hdr"><div class="card-title">📈 Aktivitas Pesan (7 hari)</div></div>
-          <div class="chart-wrap" id="msgChart"><div class="empty-state">Memuat data...</div></div>
+      <h2 id="pageTitle">Dashboard</h2>
+      <div class="tb-right">
+        <div id="connStatus" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ts)">
+          <span class="status-dot dot-green"></span><span>Live</span>
         </div>
-        <div class="card">
-          <div class="card-hdr"><div class="card-title">👥 Online Sekarang</div><button class="btn btn-gray" style="font-size:11px;padding:4px 10px" onclick="loadOnline()">Refresh</button></div>
-          <div id="onlineList" style="padding:12px 14px;display:flex;flex-wrap:wrap;min-height:60px"><div class="empty-state">Tidak ada yang online</div></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-hdr"><div class="card-title">🏆 Ruang Paling Aktif</div></div>
-        <table class="tbl" id="topRoomsTable"><tbody><tr><td class="empty-state">Memuat...</td></tr></tbody></table>
-      </div>
-    </div>
-
-    <!-- USERS -->
-    <div class="panel" id="panel-users">
-      <div class="section-hdr"><div class="section-title">Manajemen Pengguna</div></div>
-      <div class="card">
-        <div class="card-hdr"><div class="card-title">Semua Pengguna</div><button class="btn btn-gray" onclick="loadUsers()">↻ Refresh</button></div>
-        <div style="overflow-x:auto">
-          <table class="tbl">
-            <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Terdaftar</th><th>Terakhir Online</th><th>Aksi</th></tr></thead>
-            <tbody id="usersTbl"><tr><td colspan="6" class="empty-state">Memuat...</td></tr></tbody>
-          </table>
-        </div>
+        <button class="tb-btn tb-ghost" onclick="refreshCurrent()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.74-7.56"/></svg>
+          Refresh
+        </button>
+        <a href="/" target="_blank" class="tb-btn tb-acc" style="text-decoration:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Buka Chat
+        </a>
       </div>
     </div>
 
-    <!-- ROOMS -->
-    <div class="panel" id="panel-rooms">
-      <div class="section-hdr"><div class="section-title">Ruang Chat</div></div>
-      <div class="card">
-        <div class="card-hdr"><div class="card-title">Semua Room</div><button class="btn btn-gray" onclick="loadRooms()">↻ Refresh</button></div>
-        <div style="overflow-x:auto">
-          <table class="tbl">
-            <thead><tr><th>Nama Room</th><th>Tipe</th><th>Anggota</th><th>Total Pesan</th><th>Dibuat</th></tr></thead>
-            <tbody id="roomsTbl"><tr><td colspan="5" class="empty-state">Memuat...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+    <div class="content">
 
-    <!-- SESSIONS -->
-    <div class="panel" id="panel-sessions">
-      <div class="section-hdr"><div class="section-title">Sesi Aktif</div><button class="btn btn-gray" onclick="loadSessions()">↻ Refresh</button></div>
-      <div class="card">
-        <div style="overflow-x:auto">
-          <table class="tbl">
-            <thead><tr><th>User</th><th>IP</th><th>User Agent</th><th>Login</th><th>Kedaluwarsa</th><th>Aksi</th></tr></thead>
-            <tbody id="sessTbl"><tr><td colspan="6" class="empty-state">Memuat...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- FLAGGED -->
-    <div class="panel" id="panel-flagged">
-      <div class="section-hdr"><div class="section-title">⚠️ Pesan Mencurigakan</div><button class="btn btn-gray" onclick="loadFlagged()">↻ Refresh</button></div>
-      <div class="card">
-        <div style="overflow-x:auto">
-          <table class="tbl">
-            <thead><tr><th>Pengirim</th><th>Room</th><th>Pesan</th><th>Waktu</th><th>Aksi</th></tr></thead>
-            <tbody id="flagTbl"><tr><td colspan="5" class="empty-state">Tidak ada pesan mencurigakan</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- AUDIT -->
-    <div class="panel" id="panel-audit">
-      <div class="section-hdr"><div class="section-title">Audit Log</div><button class="btn btn-gray" onclick="loadAudit()">↻ Refresh</button></div>
-      <div class="card">
-        <div id="auditLog" style="max-height:600px;overflow-y:auto">
-          <div class="empty-state">Memuat...</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- BROKER -->
-    <div class="panel" id="panel-broker">
-      <div class="section-hdr"><div class="section-title">Message Broker</div><button class="btn btn-gray" onclick="loadBroker()">↻ Refresh</button></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div>
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-hdr"><div class="card-title">📊 Statistik Broker</div></div>
-            <div id="brokerStats" style="padding:16px"><div class="empty-state">Memuat...</div></div>
+      <!-- DASHBOARD -->
+      <div class="panel active" id="panel-dashboard">
+        <div class="grid-4" id="statsGrid"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+          <div class="card">
+            <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Aktivitas Pesan 7 Hari</span></div>
+            <div class="chart-wrap"><div class="chart-bars" id="msgChart"></div></div>
           </div>
           <div class="card">
-            <div class="card-hdr"><div class="card-title">🔝 Top Topics</div></div>
-            <div id="brokerTopics"><div class="empty-state">Memuat...</div></div>
+            <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Online Sekarang</span></div>
+            <div class="online-list" id="onlineList"></div>
           </div>
         </div>
         <div class="card">
+          <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Top Ruang Chat</span></div>
+          <div class="tbl-wrap"><table><thead><tr><th>Ruang</th><th>Pesan</th></tr></thead><tbody id="topRoomsTbl"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- USERS -->
+      <div class="panel" id="panel-users">
+        <div class="card">
           <div class="card-hdr">
-            <div class="card-title">📡 Live Events</div>
-            <div class="topbar-badge badge-connected" id="brokerWsBadge" style="font-size:11px;padding:3px 10px"><div class="dot"></div>Live</div>
+            <span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Semua Pengguna</span>
+            <span class="card-badge" id="userCount">-</span>
           </div>
-          <div id="brokerLive" style="max-height:500px;overflow-y:auto;font-family:var(--mono)">
-            <div class="empty-state">Menunggu events...</div>
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Bergabung</th><th>Aksi</th></tr></thead>
+            <tbody id="usersTbl"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- ROOMS -->
+      <div class="panel" id="panel-rooms">
+        <div class="card">
+          <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Ruang Chat</span></div>
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>Nama</th><th>Tipe</th><th>Pesan</th></tr></thead>
+            <tbody id="roomsTbl"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- SESSIONS -->
+      <div class="panel" id="panel-sessions">
+        <div class="card">
+          <div class="card-hdr">
+            <span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Sesi Aktif</span>
+            <span class="card-badge" id="sessCount">-</span>
+          </div>
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>User</th><th>IP</th><th>Mulai</th><th>Aksi</th></tr></thead>
+            <tbody id="sessTbl"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- FLAGGED -->
+      <div class="panel" id="panel-flagged">
+        <div class="card">
+          <div class="card-hdr">
+            <span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>Pesan Flagged</span>
+            <span class="card-badge" id="flagCount">-</span>
+          </div>
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>Pesan</th><th>Pengirim</th><th>Ruang</th><th>Waktu</th><th>Aksi</th></tr></thead>
+            <tbody id="flagTbl"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- AUDIT -->
+      <div class="panel" id="panel-audit">
+        <div class="card">
+          <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Audit Log</span></div>
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>Waktu</th><th>User</th><th>Aksi</th><th>Target</th><th>Detail</th><th>IP</th></tr></thead>
+            <tbody id="auditTbl"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- BROKER -->
+      <div class="panel" id="panel-broker">
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-hdr">
+            <span class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Statistik Broker
+            </span>
+            <span id="brokerModeBadge" class="mode-badge badge-green">in-process</span>
+          </div>
+          <div class="broker-grid" id="brokerStats">
+            <div class="bstat"><div class="bstat-label">Published</div><div class="bstat-val" id="bs-pub">—</div></div>
+            <div class="bstat"><div class="bstat-label">Consumed (Delivered)</div><div class="bstat-val" id="bs-con">—</div></div>
+            <div class="bstat"><div class="bstat-label">Active Topics</div><div class="bstat-val" id="bs-top">—</div></div>
+            <div class="bstat"><div class="bstat-label">Errors</div><div class="bstat-val" id="bs-err">—</div></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="card">
+            <div class="card-hdr"><span class="card-title">🏆 Top Topics</span></div>
+            <div class="topics-list" id="topTopics"></div>
+          </div>
+          <div class="card">
+            <div class="card-hdr">
+              <span class="card-title">⚡ Live Events</span>
+              <span class="card-badge" id="liveCount">0</span>
+            </div>
+            <div class="broker-live" id="brokerLive">
+              <div class="empty-state">Menunggu events...</div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- BROADCAST -->
-    <div class="panel" id="panel-broadcast">
-      <div class="section-hdr"><div class="section-title">📢 Broadcast ke Semua Pengguna</div></div>
-      <div class="card" style="max-width:600px">
-        <div class="card-hdr"><div class="card-title">Kirim Pengumuman</div></div>
-        <div class="broadcast-box">
-          <p style="font-size:13px;color:var(--ts);margin-bottom:14px">Pesan akan muncul sebagai notifikasi toast di semua pengguna yang sedang online.</p>
-          <textarea class="bc-inp" id="bcMsg" placeholder="Ketik pesan pengumuman..." rows="4" style="resize:vertical"></textarea>
-          <button class="btn btn-acc" onclick="sendBroadcast()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
-            Kirim Broadcast
-          </button>
+      <!-- BROADCAST -->
+      <div class="panel" id="panel-broadcast">
+        <div class="card" style="max-width:560px">
+          <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 12 19.79 19.79 0 0 1 1.04 3.4 2 2 0 0 1 3 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z"/></svg>Kirim Broadcast</span></div>
+          <div class="bcast-form">
+            <div class="mfld"><label>Pesan Broadcast</label>
+              <textarea class="bcast-inp" id="bcastMsg" placeholder="Ketik pesan yang akan dikirim ke semua pengguna online..." rows="4"></textarea>
+            </div>
+            <button class="tb-btn tb-acc" style="width:100%;justify-content:center;padding:11px" onclick="sendBroadcast()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Kirim ke Semua User
+            </button>
+          </div>
         </div>
-        <div class="card-hdr" style="margin-top:0"><div class="card-title">Riwayat Broadcast (dari Audit Log)</div></div>
-        <div id="bcHistory" style="max-height:300px;overflow-y:auto">
-          <div class="empty-state">Memuat...</div>
+        <div class="card" style="max-width:560px;margin-top:14px">
+          <div class="card-hdr"><span class="card-title">Riwayat Broadcast</span></div>
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>Pesan</th><th>Oleh</th><th>Waktu</th></tr></thead>
+            <tbody id="bcastHistory"></tbody>
+          </table></div>
         </div>
       </div>
-    </div>
 
-  </div>
-</div>
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
 
-<!-- MODAL BAN -->
-<div class="modal-overlay" id="banModal" style="display:none">
+<!-- BAN MODAL -->
+<div class="modal-ov" id="banModal">
   <div class="modal">
-    <h3>🚫 Blokir Pengguna</h3>
-    <p>Pengguna akan diblokir dan semua sesi aktif akan dihentikan.</p>
-    <div class="modal-field">
-      <label>Alasan Pemblokiran</label>
-      <input type="text" id="banReason" placeholder="Contoh: Spam, melanggar ketentuan...">
-    </div>
+    <h3>🚫 Ban Pengguna</h3>
     <input type="hidden" id="banUserId">
+    <div class="mfld"><label>Alasan Ban</label><textarea id="banReason" rows="3" placeholder="Masukkan alasan..."></textarea></div>
     <div class="modal-btns">
-      <button class="btn btn-gray" onclick="closeModal('banModal')">Batal</button>
-      <button class="btn btn-red" onclick="confirmBan()">Blokir</button>
+      <button class="mbtn mbtn-gray" onclick="closeModal('banModal')">Batal</button>
+      <button class="mbtn" style="background:var(--danger);color:#fff" onclick="confirmBan()">Ban User</button>
     </div>
   </div>
 </div>
 
+<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
+// ─── AUTH ───────────────────────────────────────────────
 let token = localStorage.getItem('chattoken');
-let adminSocket;
-const titles = {
-  dashboard:'Dashboard',users:'Pengguna',rooms:'Ruang Chat',
-  sessions:'Sesi Aktif',flagged:'Pesan Flagged',audit:'Audit Log',
-  broker:'Message Broker',broadcast:'Broadcast'
-};
+let me = {};
+let currentPanel = 'dashboard';
+let adminSocket = null;
+let liveEventCount = 0;
 
-// CHECK AUTH
-if(!token){window.location='/'}
-
-async function api(path,opts={}){
-  const r=await fetch(path,{...opts,headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json',...(opts.headers||{})}});
-  if(r.status===401||r.status===403){window.location='/';return null}
-  return r.json();
+async function checkAuth() {
+  if (!token) { location.href = '/'; return; }
+  try {
+    const r = await api('/api/auth/me');
+    if (!r || r.error) { location.href = '/'; return; }
+    me = r;
+    if (me.role !== 'admin') { location.href = '/'; return; }
+    document.getElementById('sbName').textContent = me.username;
+    document.getElementById('sbAv').textContent = me.username[0].toUpperCase();
+    document.getElementById('sbAv').style.background = me.color || '#00a884';
+    init();
+  } catch { location.href = '/'; }
 }
 
-// PANEL SWITCH
-function showPanel(id){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
-  document.getElementById('panel-'+id).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(i=>{if(i.getAttribute('onclick')?.includes("'"+id+"'"))i.classList.add('active')});
-  document.getElementById('topTitle').textContent=titles[id]||id;
-  if(id==='dashboard')loadDashboard();
-  else if(id==='users')loadUsers();
-  else if(id==='rooms')loadRooms();
-  else if(id==='sessions')loadSessions();
-  else if(id==='flagged')loadFlagged();
-  else if(id==='audit')loadAudit();
-  else if(id==='broker')loadBroker();
-  else if(id==='broadcast')loadBroadcastHistory();
+function doLogout() {
+  api('/api/auth/logout','POST');
+  localStorage.removeItem('chattoken');
+  location.href = '/';
 }
 
-async function loadAll(){const p=document.querySelector('.panel.active');if(p)p.id.replace('panel-','');loadDashboard();}
-
-// DASHBOARD
-async function loadDashboard(){
-  const s=await api('/api/admin/stats');
-  if(!s)return;
-  document.getElementById('s-users').textContent=s.totalUsers;
-  document.getElementById('s-msgs').textContent=s.totalMsgs;
-  document.getElementById('s-sess').textContent=s.activeSess;
-  document.getElementById('s-flag').textContent=s.flagged;
-  document.getElementById('s-ban').textContent=s.banned;
-  document.getElementById('s-broker').textContent=s.brokerTotal;
-  document.getElementById('s-rooms').textContent=s.totalRooms;
-  if(s.flagged>0){document.getElementById('flagBadge').textContent=s.flagged;document.getElementById('flagBadge').style.display='flex';}
-  renderChart(s.msgPerDay);
-  renderTopRooms(s.topRooms);
-  loadOnline();
-}
-
-function renderChart(data){
-  const wrap=document.getElementById('msgChart');
-  if(!data||!data.length){wrap.innerHTML='<div class="empty-state">Belum ada data</div>';return}
-  const max=Math.max(...data.map(d=>d.count),1);
-  wrap.innerHTML='';
-  data.forEach(d=>{
-    const grp=document.createElement('div');grp.className='bar-grp';
-    const pct=Math.max((d.count/max)*100,4);
-    const day=d.day?d.day.slice(5):'';
-    grp.innerHTML=`<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;width:100%"><div class="bar" style="height:${pct}%" title="${d.count} pesan"></div></div><div class="bar-label">${day}</div><div class="bar-label" style="color:var(--acc)">${d.count}</div>`;
-    wrap.appendChild(grp);
-  });
-}
-
-function renderTopRooms(data){
-  const tb=document.getElementById('topRoomsTable').querySelector('tbody');
-  if(!data||!data.length){tb.innerHTML='<tr><td class="empty-state">Belum ada data</td></tr>';return}
-  tb.innerHTML=data.map((r,i)=>`<tr>
-    <td><span style="color:var(--warn);font-weight:700;margin-right:8px">#${i+1}</span>${esc(r.name)}</td>
-    <td><span style="font-family:var(--mono);color:var(--acc)">${r.msg_count}</span> pesan</td>
-  </tr>`).join('');
-}
-
-async function loadOnline(){
-  const d=await api('/api/admin/online');
-  const el=document.getElementById('onlineList');
-  if(!d||!d.length){el.innerHTML='<div class="empty-state">Tidak ada yang online</div>';return}
-  el.innerHTML=d.map(u=>`<div class="online-chip"><div class="online-dot"></div>${esc(u.username)}</div>`).join('');
-}
-
-// USERS
-async function loadUsers(){
-  const users=await api('/api/admin/users');
-  const tb=document.getElementById('usersTbl');
-  if(!users){return}
-  if(!users.length){tb.innerHTML='<tr><td colspan="6" class="empty-state">Tidak ada pengguna</td></tr>';return}
-  tb.innerHTML=users.filter(u=>u.role!=='bot').map(u=>`<tr>
-    <td><div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;border-radius:50%;background:${u.color||'#059669'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">${(u.username||'?')[0].toUpperCase()}</div><div><div style="font-weight:600">${esc(u.username)}</div><div style="font-size:11px;color:var(--tm);font-family:var(--mono)">${esc(u.id.slice(0,8))}...</div></div></div></td>
-    <td><span class="tag ${u.role==='admin'?'tag-acc':'tag-gray'}">${u.role}</span></td>
-    <td><span class="tag ${u.is_banned?'tag-red':u.status==='online'?'tag-green':'tag-gray'}">${u.is_banned?'Diblokir':u.status||'offline'}</span></td>
-    <td style="font-size:12px;color:var(--ts)">${fmtDate(u.created_at)}</td>
-    <td style="font-size:12px;color:var(--ts)">${u.last_seen?fmtDate(u.last_seen):'—'}</td>
-    <td>
-      ${u.is_banned
-        ?`<button class="btn btn-blue" onclick="unbanUser('${u.id}')">Buka Blokir</button>`
-        :`<button class="btn btn-red" onclick="openBanModal('${u.id}')" ${u.role==='admin'?'disabled':''}>Blokir</button>`}
-    </td>
-  </tr>`).join('');
-}
-
-async function loadRooms(){
-  const rooms=await api('/api/admin/rooms');
-  const tb=document.getElementById('roomsTbl');
-  if(!rooms){return}
-  tb.innerHTML=rooms.map(r=>`<tr>
-    <td style="font-weight:600">${esc(r.name)}</td>
-    <td><span class="tag ${r.type==='group'?'tag-blue':'tag-gray'}">${r.type}</span></td>
-    <td style="font-family:var(--mono)">${r.member_count||0}</td>
-    <td style="font-family:var(--mono);color:var(--acc)">${r.msg_count||0}</td>
-    <td style="font-size:12px;color:var(--ts)">${fmtDate(r.created_at)}</td>
-  </tr>`).join('');
-}
-
-async function loadSessions(){
-  const sess=await api('/api/admin/sessions');
-  const tb=document.getElementById('sessTbl');
-  if(!sess){return}
-  if(!sess.length){tb.innerHTML='<tr><td colspan="6" class="empty-state">Tidak ada sesi aktif</td></tr>';return}
-  tb.innerHTML=sess.map(s=>`<tr>
-    <td><span style="font-weight:600">${esc(s.username)}</span> <span class="tag tag-gray" style="margin-left:4px">${s.role}</span></td>
-    <td style="font-family:var(--mono);font-size:12px">${s.ip||'—'}</td>
-    <td style="font-size:11px;color:var(--ts);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.user_agent||'—'}</td>
-    <td style="font-size:12px;color:var(--ts)">${fmtDate(s.created_at)}</td>
-    <td style="font-size:12px;color:var(--ts)">${fmtDate(s.expires_at)}</td>
-    <td><button class="btn btn-red" onclick="revokeSession('${s.id}')">Cabut</button></td>
-  </tr>`).join('');
-}
-
-async function loadFlagged(){
-  const msgs=await api('/api/admin/flagged');
-  const tb=document.getElementById('flagTbl');
-  if(!msgs){return}
-  if(!msgs.length){tb.innerHTML='<tr><td colspan="5" class="empty-state">Tidak ada pesan mencurigakan 🎉</td></tr>';return}
-  tb.innerHTML=msgs.map(m=>`<tr>
-    <td style="font-weight:600">${esc(m.sender_name)}</td>
-    <td style="color:var(--ts)">${esc(m.room_name)}</td>
-    <td style="font-size:13px;max-width:250px">${esc(m.text.slice(0,80))}${m.text.length>80?'...':''}</td>
-    <td style="font-size:12px;color:var(--ts)">${fmtDate(m.created_at)}</td>
-    <td><button class="btn btn-red" onclick="deleteMsg('${m.id}')">Hapus</button></td>
-  </tr>`).join('');
-}
-
-async function loadAudit(){
-  const logs=await api('/api/admin/audit');
-  const el=document.getElementById('auditLog');
-  if(!logs){return}
-  if(!logs.length){el.innerHTML='<div class="empty-state">Belum ada log</div>';return}
-  el.innerHTML=logs.map(l=>{
-    const actionColor={
-      'login':'tag-green','logout':'tag-gray','register':'tag-acc',
-      'ban_user':'tag-red','unban_user':'tag-blue','delete_message':'tag-yellow',
-      'broadcast':'tag-blue','login_failed':'tag-red',
-    }[l.action]||'tag-gray';
-    return`<div class="log-entry">
-      <div class="log-time">${fmtDate(l.created_at)}</div>
-      <div><span class="tag ${actionColor}" style="margin-right:6px">${l.action}</span></div>
-      <div class="log-detail"><span class="log-user">${l.username||'system'}</span>${l.detail?'— '+esc(l.detail.slice(0,80)):''}</div>
-      ${l.ip?`<div style="font-size:11px;color:var(--tm);font-family:var(--mono);flex-shrink:0">${l.ip}</div>`:''}
-    </div>`;
-  }).join('');
-}
-
-async function loadBroker(){
-  const d=await api('/api/admin/broker');
-  if(!d)return;
-  const s=d.status;
-  document.getElementById('brokerStats').innerHTML=`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      ${[['Published',s.published,'var(--acc)'],['Delivered',s.delivered,'var(--success)'],['Active Topics',s.activeTopics,'var(--info)'],['Dead Letter',s.deadLetterCount,s.deadLetterCount>0?'var(--danger)':'var(--ts)']].map(([k,v,c])=>`
-        <div style="background:var(--bg3);border-radius:10px;padding:12px">
-          <div style="font-size:11px;color:var(--ts);margin-bottom:4px">${k}</div>
-          <div style="font-size:20px;font-weight:700;font-family:var(--mono);color:${c}">${v}</div>
-        </div>`).join('')}
-    </div>`;
-  document.getElementById('brokerTopics').innerHTML=s.topTopics.length
-    ?s.topTopics.map(t=>`<div class="broker-topic"><span style="font-family:var(--mono);font-size:13px">${t.topic}</span><span class="broker-count">${t.count}</span></div>`).join('')
-    :'<div class="empty-state">Belum ada topic</div>';
-  renderBrokerEvents(d.recentEvents);
-  connectBrokerWs();
-}
-
-function renderBrokerEvents(events){
-  const el=document.getElementById('brokerLive');
-  if(!events||!events.length){el.innerHTML='<div class="empty-state">Belum ada event</div>';return}
-  el.innerHTML=events.map(e=>`<div class="broker-event">
-    <div class="broker-event-topic">${e.topic} <span style="color:var(--tm)">${fmtDate(e.created_at)}</span></div>
-    <div class="broker-event-payload">${esc((typeof e.payload==='string'?e.payload:JSON.stringify(e.payload,null,2)).slice(0,200))}</div>
-  </div>`).join('');
-}
-
-function connectBrokerWs(){
-  if(adminSocket)return;
-  adminSocket=io('/admin-ws',{auth:{token}});
-  adminSocket.on('connect',()=>{document.getElementById('brokerWsBadge').className='topbar-badge badge-connected';document.getElementById('brokerWsBadge').innerHTML='<div class="dot"></div>Live'});
-  adminSocket.on('disconnect',()=>{document.getElementById('brokerWsBadge').className='topbar-badge badge-disconnected'});
-  adminSocket.on('broker_event',ev=>{
-    const el=document.getElementById('brokerLive');
-    const d=document.createElement('div');
-    d.className='broker-event';d.style.background='rgba(0,168,132,.05)';
-    d.innerHTML=`<div class="broker-event-topic" style="color:var(--accl)">${ev.topic} <span style="color:var(--tm)">just now</span></div><div class="broker-event-payload">${esc(JSON.stringify(ev.payload,null,2).slice(0,200))}</div>`;
-    if(el.firstChild?.className==='empty-state')el.innerHTML='';
-    el.insertBefore(d,el.firstChild);
-    if(el.children.length>50)el.removeChild(el.lastChild);
-  });
-}
-
-async function loadBroadcastHistory(){
-  const logs=await api('/api/admin/audit');
-  const el=document.getElementById('bcHistory');
-  if(!logs)return;
-  const bc=logs.filter(l=>l.action==='broadcast');
-  if(!bc.length){el.innerHTML='<div class="empty-state">Belum ada broadcast</div>';return}
-  el.innerHTML=bc.map(l=>`<div class="log-entry">
-    <div class="log-time">${fmtDate(l.created_at)}</div>
-    <div class="log-detail">${esc(l.detail||'')}</div>
-  </div>`).join('');
-}
-
-// ACTIONS
-function openBanModal(userId){document.getElementById('banUserId').value=userId;document.getElementById('banReason').value='';document.getElementById('banModal').style.display='flex';}
-function closeModal(id){document.getElementById(id).style.display='none'}
-async function confirmBan(){
-  const id=document.getElementById('banUserId').value;
-  const reason=document.getElementById('banReason').value||'Melanggar ketentuan';
-  await api('/api/admin/ban/'+id,{method:'POST',body:JSON.stringify({reason})});
-  closeModal('banModal');showToast('✅ Pengguna diblokir');loadUsers();
-}
-async function unbanUser(id){
-  await api('/api/admin/unban/'+id,{method:'POST',body:'{}'});
-  showToast('✅ Blokir dicabut');loadUsers();
-}
-async function deleteMsg(id){
-  if(!confirm('Hapus pesan ini?'))return;
-  await api('/api/admin/messages/'+id,{method:'DELETE'});
-  showToast('✅ Pesan dihapus');loadFlagged();
-}
-async function revokeSession(id){
-  if(!confirm('Cabut sesi ini?'))return;
-  await api('/api/admin/sessions/'+id,{method:'DELETE'});
-  showToast('✅ Sesi dicabut');loadSessions();
-}
-async function sendBroadcast(){
-  const msg=document.getElementById('bcMsg').value.trim();
-  if(!msg){showToast('⚠️ Isi pesan terlebih dahulu','warn');return}
-  await api('/api/admin/broadcast',{method:'POST',body:JSON.stringify({message:msg})});
-  document.getElementById('bcMsg').value='';
-  showToast('📢 Broadcast terkirim!');loadBroadcastHistory();
-}
-
-// UTILS
-function fmtDate(ts){if(!ts)return'—';const d=new Date(ts*(ts<1e10?1000:1));return d.toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-let toastT;
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3000)}
-
-// INIT
-async function init(){
-  const me=await api('/api/auth/me');
-  if(!me)return;
-  if(me.role!=='admin'){window.location='/';return}
-  document.getElementById('navName').textContent=me.username;
-  document.getElementById('navAv').textContent=me.username[0].toUpperCase();
-  document.getElementById('navAv').style.background=me.color||'#00a884';
-  document.getElementById('connBadge').className='topbar-badge badge-connected';
-  document.getElementById('connBadge').innerHTML='<div class="dot"></div>Terhubung';
+// ─── INIT ────────────────────────────────────────────────
+function init() {
+  setupNav();
   loadDashboard();
-  // Auto refresh dashboard every 30s
-  setInterval(()=>{if(document.getElementById('panel-dashboard').classList.contains('active'))loadDashboard()},30000);
+  connectAdminSocket();
+  setInterval(() => { if (currentPanel === 'dashboard') loadDashboard(); }, 30000);
 }
-init();
+
+function setupNav() {
+  document.querySelectorAll('.nav-item[data-panel]').forEach(el => {
+    el.addEventListener('click', () => switchPanel(el.dataset.panel));
+  });
+}
+
+function switchPanel(id) {
+  currentPanel = id;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.panel === id));
+  document.querySelectorAll('.panel').forEach(el => el.classList.toggle('active', el.id === 'panel-' + id));
+  const titles = {
+    dashboard:'Dashboard', users:'Pengguna', rooms:'Ruang Chat',
+    sessions:'Sesi Aktif', flagged:'Pesan Flagged', audit:'Audit Log',
+    broker:'Message Broker', broadcast:'Broadcast'
+  };
+  document.getElementById('pageTitle').textContent = titles[id] || id;
+  loadPanel(id);
+}
+
+function refreshCurrent() { loadPanel(currentPanel); }
+
+function loadPanel(id) {
+  if (id === 'dashboard') loadDashboard();
+  else if (id === 'users') loadUsers();
+  else if (id === 'rooms') loadRooms();
+  else if (id === 'sessions') loadSessions();
+  else if (id === 'flagged') loadFlagged();
+  else if (id === 'audit') loadAudit();
+  else if (id === 'broker') loadBroker();
+  else if (id === 'broadcast') loadBroadcast();
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────
+async function loadDashboard() {
+  const [stats, online] = await Promise.all([api('/api/admin/stats'), api('/api/admin/online')]);
+  if (!stats) return;
+
+  const cards = [
+    { label:'Total User', val:stats.totalUsers, color:'var(--acc)', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>` },
+    { label:'Total Pesan', val:stats.totalMsgs, color:'var(--info)', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>` },
+    { label:'Sesi Aktif', val:stats.activeSess, color:'var(--success)', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>` },
+    { label:'Flagged', val:stats.flagged, color:stats.flagged>0?'var(--warn)':'var(--ts)', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>` },
+    { label:'Ruangan', val:stats.totalRooms, color:'var(--purple)', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>` },
+    { label:'Banned', val:stats.banned, color:stats.banned>0?'var(--danger)':'var(--ts)', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>` },
+    { label:'Online', val:(online||[]).length, color:'var(--success)', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>` },
+    { label:'Total Ruang', val:stats.totalRooms, color:'var(--acc)', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>` },
+  ].slice(0,8);
+
+  document.getElementById('statsGrid').innerHTML = cards.map(c => `
+    <div class="stat-card">
+      <div class="sc-icon" style="background:${c.color}22;color:${c.color}">${c.icon}</div>
+      <div class="sc-label">${c.label}</div>
+      <div class="sc-val" style="color:${c.color}">${c.val}</div>
+    </div>`).join('');
+
+  if (stats.flagged > 0) {
+    document.getElementById('flaggedBadge').textContent = stats.flagged;
+    document.getElementById('flaggedBadge').style.display = 'flex';
+  }
+
+  // Chart
+  const days = stats.msgPerDay || [];
+  const max = Math.max(...days.map(d => d.count), 1);
+  document.getElementById('msgChart').innerHTML = days.map(d => `
+    <div class="bar-col">
+      <div class="bar-count">${d.count}</div>
+      <div class="bar-fill" style="height:${Math.round(d.count/max*90)+8}px"></div>
+      <div class="bar-label">${(d.day||'').slice(5)}</div>
+    </div>`).join('') || '<div class="empty-state">Belum ada data</div>';
+
+  // Online list
+  const ol = document.getElementById('onlineList');
+  if (!online || !online.length) { ol.innerHTML = '<div style="color:var(--ts);font-size:13px;padding:4px">Tidak ada user online</div>'; }
+  else ol.innerHTML = online.map(u => `
+    <div class="online-chip">
+      <div class="online-chip-av" style="background:${u.color||'#059669'}">${(u.username||'?')[0].toUpperCase()}</div>
+      <span>${esc(u.username||'-')}</span>
+    </div>`).join('');
+
+  // Top rooms
+  document.getElementById('topRoomsTbl').innerHTML = (stats.topRooms||[]).map(r => `
+    <tr><td>${esc(r.name)}</td><td>${r.msg_count}</td></tr>`).join('') || '<tr><td colspan="2" class="empty-state">Belum ada data</td></tr>';
+}
+
+// ─── USERS ───────────────────────────────────────────────
+async function loadUsers() {
+  const data = await api('/api/admin/users');
+  if (!data) return;
+  document.getElementById('userCount').textContent = data.length;
+  document.getElementById('usersTbl').innerHTML = data.map(u => `
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div style="width:32px;height:32px;border-radius:50%;background:${u.color||'#059669'};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${(u.username||'?')[0].toUpperCase()}</div>
+        <div>
+          <div style="font-weight:600">${esc(u.username)}</div>
+          <div style="font-size:11px;color:var(--ts);font-family:monospace">${u.id.slice(0,12)}...</div>
+        </div>
+      </div></td>
+      <td><span class="badge ${u.role==='admin'?'badge-purple':u.role==='bot'?'badge-blue':'badge-gray'}">${u.role}</span></td>
+      <td><span class="badge ${u.is_banned?'badge-red':u.status==='online'?'badge-green':'badge-gray'}">${u.is_banned?'Banned':u.status||'offline'}</span></td>
+      <td style="color:var(--ts);font-size:12px">${fmtDate(u.created_at)}</td>
+      <td>
+        ${u.role !== 'admin' ? (u.is_banned
+          ? `<button class="act-btn btn-green" onclick="unbanUser('${u.id}')">Unban</button>`
+          : `<button class="act-btn btn-red" onclick="openBanModal('${u.id}')">Ban</button>`)
+          : '<span style="color:var(--ts);font-size:12px">—</span>'}
+      </td>
+    </tr>`).join('');
+}
+
+function openBanModal(uid) { document.getElementById('banUserId').value = uid; openModal('banModal'); }
+async function confirmBan() {
+  const uid = document.getElementById('banUserId').value;
+  const reason = document.getElementById('banReason').value.trim() || 'Melanggar ketentuan';
+  await api('/api/admin/ban/'+uid, 'POST', { reason });
+  closeModal('banModal'); showToast('✅ User dibanned'); loadUsers();
+}
+async function unbanUser(uid) {
+  await api('/api/admin/unban/'+uid, 'POST');
+  showToast('✅ User di-unban'); loadUsers();
+}
+
+// ─── ROOMS ───────────────────────────────────────────────
+async function loadRooms() {
+  const data = await api('/api/admin/rooms');
+  if (!data) return;
+  document.getElementById('roomsTbl').innerHTML = data.map(r => `
+    <tr>
+      <td><b>${esc(r.name)}</b><br><span style="font-size:11px;color:var(--ts);font-family:monospace">${r.id}</span></td>
+      <td><span class="badge ${r.type==='group'?'badge-blue':'badge-gray'}">${r.type}</span></td>
+      <td>${r.msg_count||0}</td>
+    </tr>`).join('');
+}
+
+// ─── SESSIONS ────────────────────────────────────────────
+async function loadSessions() {
+  const data = await api('/api/admin/sessions');
+  if (!data) return;
+  document.getElementById('sessCount').textContent = data.length;
+  document.getElementById('sessTbl').innerHTML = data.map(s => `
+    <tr>
+      <td><b>${esc(s.username)}</b><br><span class="badge ${s.role==='admin'?'badge-purple':'badge-gray'}">${s.role}</span></td>
+      <td style="font-size:12px;color:var(--ts)">${esc(s.ip||'—')}</td>
+      <td style="font-size:12px;color:var(--ts)">${fmtDate(s.created_at)}</td>
+      <td><button class="act-btn btn-red" onclick="revokeSession('${s.id}')">Revoke</button></td>
+    </tr>`).join('');
+}
+async function revokeSession(id) {
+  await api('/api/admin/sessions/'+id, 'DELETE');
+  showToast('✅ Sesi di-revoke'); loadSessions();
+}
+
+// ─── FLAGGED ─────────────────────────────────────────────
+async function loadFlagged() {
+  const data = await api('/api/admin/flagged');
+  if (!data) return;
+  document.getElementById('flagCount').textContent = data.length;
+  document.getElementById('flaggedBadge').textContent = data.length;
+  document.getElementById('flaggedBadge').style.display = data.length > 0 ? 'flex' : 'none';
+  document.getElementById('flagTbl').innerHTML = !data.length ? '<tr><td colspan="5" class="empty-state">Tidak ada pesan flagged 🎉</td></tr>'
+    : data.map(m => `
+    <tr>
+      <td><div class="truncate" title="${esc(m.text)}">${esc(m.text||'—')}</div></td>
+      <td><b>${esc(m.sender_name)}</b></td>
+      <td style="font-size:12px;color:var(--ts)">${esc(m.room_name)}</td>
+      <td style="font-size:12px;color:var(--ts)">${fmtDate(m.created_at)}</td>
+      <td><button class="act-btn btn-red" onclick="deleteMsg('${m.id}')">Hapus</button></td>
+    </tr>`).join('');
+}
+async function deleteMsg(id) {
+  await api('/api/admin/messages/'+id, 'DELETE');
+  showToast('✅ Pesan dihapus'); loadFlagged();
+}
+
+// ─── AUDIT ───────────────────────────────────────────────
+async function loadAudit() {
+  const data = await api('/api/admin/audit');
+  if (!data) return;
+  const colorMap = {
+    login:'al-login', logout:'al-logout', ban_user:'al-ban', unban_user:'al-unban',
+    broadcast:'al-broadcast', delete_message:'al-delete', register:'al-register',
+  };
+  document.getElementById('auditTbl').innerHTML = !data.length ? '<tr><td colspan="6" class="empty-state">Belum ada log</td></tr>'
+    : data.map(a => `
+    <tr>
+      <td style="font-size:11.5px;color:var(--ts)">${fmtDate(a.created_at)}</td>
+      <td><b>${esc(a.username||'system')}</b></td>
+      <td><span class="${colorMap[a.action]||'al-other'}" style="font-weight:600">${esc(a.action)}</span></td>
+      <td style="font-size:12px;color:var(--ts);font-family:monospace">${a.target?esc(a.target.slice(0,14))+'..':'—'}</td>
+      <td style="font-size:12px;color:var(--ts)"><div class="truncate">${esc(a.detail||'—')}</div></td>
+      <td style="font-size:11px;color:var(--ts)">${esc(a.ip||'—')}</td>
+    </tr>`).join('');
+}
+
+// ─── BROKER ──────────────────────────────────────────────
+async function loadBroker() {
+  const d = await api('/api/admin/broker');
+  if (!d) return;
+  const s = d.status;
+
+  // FIX: map correct field names
+  document.getElementById('bs-pub').textContent = s.published ?? '—';
+  document.getElementById('bs-con').textContent = s.consumed  ?? '—';   // consumed not delivered
+  document.getElementById('bs-top').textContent = s.activeTopics ?? '—'; // not undefined
+  document.getElementById('bs-err').textContent = s.errors ?? '—';       // bonus: errors
+
+  // Mode badge
+  const mb = document.getElementById('brokerModeBadge');
+  if (s.mode && s.mode.includes('rabbitmq')) {
+    mb.textContent = '🐰 RabbitMQ'; mb.className = 'mode-badge badge-green';
+  } else {
+    mb.textContent = '⚡ In-Process'; mb.className = 'mode-badge badge-blue';
+  }
+
+  // Broker dot
+  document.getElementById('brokerDot').className = 'status-dot ' + (s.connected ? 'dot-green' : 'dot-red');
+
+  // Top topics
+  const max = Math.max(...(s.topTopics||[]).map(t => t.count), 1);
+  document.getElementById('topTopics').innerHTML = !s.topTopics?.length
+    ? '<div class="empty-state" style="padding:20px">Belum ada data</div>'
+    : s.topTopics.map(t => `
+      <div class="topic-row">
+        <span class="topic-name">${esc(t.topic)}</span>
+        <div class="topic-bar-wrap"><div class="topic-bar" style="width:${Math.round(t.count/max*100)}%"></div></div>
+        <span class="topic-count">${t.count}</span>
+      </div>`).join('');
+
+  // Recent events
+  const events = d.recentEvents || [];
+  const liveEl = document.getElementById('brokerLive');
+  if (!events.length) { liveEl.innerHTML = '<div class="empty-state">Belum ada events</div>'; }
+  else {
+    liveEl.innerHTML = events.map(e => `
+      <div class="live-event">
+        <span class="le-topic">${esc(e.topic)}</span>
+        <span class="le-payload">${esc(JSON.stringify(e.payload||{}).slice(0,60))}</span>
+        <span class="le-time">${fmtTime(e.timestamp)}</span>
+      </div>`).join('');
+  }
+}
+
+// ─── BROADCAST ───────────────────────────────────────────
+async function loadBroadcast() {
+  const data = await api('/api/admin/audit');
+  const bcast = (data||[]).filter(a => a.action === 'broadcast').slice(0, 20);
+  document.getElementById('bcastHistory').innerHTML = !bcast.length ? '<tr><td colspan="3" class="empty-state">Belum ada broadcast</td></tr>'
+    : bcast.map(a => `
+    <tr>
+      <td><div class="truncate">${esc(a.detail||'—')}</div></td>
+      <td><b>${esc(a.username||'admin')}</b></td>
+      <td style="font-size:12px;color:var(--ts)">${fmtDate(a.created_at)}</td>
+    </tr>`).join('');
+}
+
+async function sendBroadcast() {
+  const msg = document.getElementById('bcastMsg').value.trim();
+  if (!msg) { showToast('⚠️ Tulis pesan dulu'); return; }
+  await api('/api/admin/broadcast', 'POST', { message: msg });
+  document.getElementById('bcastMsg').value = '';
+  showToast('📢 Broadcast terkirim!');
+  loadBroadcast();
+}
+
+// ─── ADMIN WEBSOCKET ─────────────────────────────────────
+function connectAdminSocket() {
+  adminSocket = io('/admin-ws', { auth: { token } });
+  adminSocket.on('connect', () => {
+    document.getElementById('connStatus').innerHTML = '<span class="status-dot dot-green"></span><span>Live</span>';
+  });
+  adminSocket.on('disconnect', () => {
+    document.getElementById('connStatus').innerHTML = '<span class="status-dot dot-red"></span><span>Terputus</span>';
+  });
+  adminSocket.on('broker_event', (ev) => {
+    liveEventCount++;
+    document.getElementById('liveCount').textContent = liveEventCount;
+    const liveEl = document.getElementById('brokerLive');
+    const empty = liveEl.querySelector('.empty-state');
+    if (empty) liveEl.innerHTML = '';
+    const row = document.createElement('div');
+    row.className = 'live-event';
+    row.innerHTML = `
+      <span class="le-topic">${esc(ev.topic)}</span>
+      <span class="le-payload">${esc(JSON.stringify(ev.payload||{}).slice(0,60))}</span>
+      <span class="le-time">${fmtTime(ev.timestamp)}</span>`;
+    liveEl.insertBefore(row, liveEl.firstChild);
+    if (liveEl.children.length > 80) liveEl.removeChild(liveEl.lastChild);
+    // Update broker stats if on broker panel
+    if (currentPanel === 'broker') {
+      const cur = parseInt(document.getElementById('bs-pub').textContent) || 0;
+      document.getElementById('bs-pub').textContent = cur + 1;
+    }
+  });
+}
+
+// ─── UTILS ───────────────────────────────────────────────
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+
+function fmtDate(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts * 1000);
+  return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short'}) + ' ' +
+    d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+function fmtTime(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0') + ':' + d.getSeconds().toString().padStart(2,'0');
+}
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-ov').forEach(el => el.addEventListener('click', e => { if (e.target === el) el.classList.remove('show'); }));
+
+let toastT;
+function showToast(msg) {
+  const t = document.getElementById('toast'); t.textContent = msg;
+  t.classList.add('show'); clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+async function api(path, method='GET', body=null) {
+  const opts = { method, headers: { Authorization: 'Bearer ' + token } };
+  if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+  try {
+    const r = await fetch(path, opts);
+    if (r.status === 401 || r.status === 403) { location.href = '/'; return null; }
+    return r.json();
+  } catch { return null; }
+}
+
+checkAuth();
 </script>
 </body>
 </html>

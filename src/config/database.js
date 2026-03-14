@@ -51,7 +51,10 @@ function applySchema() {
     id TEXT PRIMARY KEY, username TEXT UNIQUE NOT NULL, password TEXT NOT NULL,
     role TEXT DEFAULT 'user', color TEXT, status TEXT DEFAULT 'offline',
     last_seen INTEGER, created_at INTEGER DEFAULT (strftime('%s','now')),
-    is_banned INTEGER DEFAULT 0, ban_reason TEXT
+    is_banned INTEGER DEFAULT 0, ban_reason TEXT,
+    email TEXT,
+    bio TEXT,
+    avatar_url TEXT
   )`);
   db.run(`CREATE TABLE IF NOT EXISTS rooms (
     id TEXT PRIMARY KEY, name TEXT NOT NULL, type TEXT DEFAULT 'private',
@@ -59,7 +62,7 @@ function applySchema() {
   )`);
   db.run(`CREATE TABLE IF NOT EXISTS messages (
     id TEXT PRIMARY KEY, room_id TEXT NOT NULL, sender_id TEXT NOT NULL,
-    text TEXT NOT NULL, created_at INTEGER DEFAULT (strftime('%s','now')),
+    text TEXT, file_url TEXT, file_name TEXT, file_type TEXT, created_at INTEGER DEFAULT (strftime('%s','now')),
     is_deleted INTEGER DEFAULT 0, flagged INTEGER DEFAULT 0
   )`);
   db.run(`CREATE TABLE IF NOT EXISTS sessions (
@@ -71,6 +74,15 @@ function applySchema() {
     id TEXT PRIMARY KEY, user_id TEXT, action TEXT NOT NULL,
     target TEXT, detail TEXT, ip TEXT,
     created_at INTEGER DEFAULT (strftime('%s','now'))
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS friendships (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    friend_id TEXT NOT NULL,
+    room_id TEXT,
+    status TEXT DEFAULT 'pending',
+    created_at INTEGER DEFAULT (strftime('%s','now')),
+    UNIQUE(user_id, friend_id)
   )`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_msg_room ON messages(room_id, created_at)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_audit ON audit_logs(created_at DESC)`);
@@ -216,4 +228,39 @@ function getStats() {
   };
 }
 
-module.exports = { initDB, persist, UserRepo, RoomRepo, MessageRepo, SessionRepo, AuditRepo, getStats };
+module.exports = { initDB, persist, UserRepo, RoomRepo, MessageRepo, SessionRepo, AuditRepo, getStats, run, query, queryOne };
+
+// ─── FRIENDSHIP REPO ─────────────────────────────────────
+const FriendRepo = {
+  addFriend({ id, userId, friendId, roomId }) {
+    run('INSERT OR IGNORE INTO friendships(id,user_id,friend_id,room_id,status) VALUES(?,?,?,?,?)',
+      [id, userId, friendId, roomId, 'accepted']);
+    // Mirror
+    run('INSERT OR IGNORE INTO friendships(id,user_id,friend_id,room_id,status) VALUES(?,?,?,?,?)',
+      [require('uuid').v4(), friendId, userId, roomId, 'accepted']);
+  },
+  getFriends(userId) {
+    return query(`SELECT f.*, u.username, u.color, u.status, u.avatar_url, u.bio
+      FROM friendships f JOIN users u ON f.friend_id=u.id
+      WHERE f.user_id=? AND f.status='accepted'`, [userId]);
+  },
+  exists(userId, friendId) {
+    return !!queryOne('SELECT id FROM friendships WHERE user_id=? AND friend_id=?', [userId, friendId]);
+  },
+};
+
+// ─── PROFILE UPDATE ──────────────────────────────────────
+function updateProfile(userId, { email, bio, avatarUrl, color }) {
+  const parts = [], vals = [];
+  if (email !== undefined)     { parts.push('email=?');      vals.push(email); }
+  if (bio !== undefined)       { parts.push('bio=?');        vals.push(bio); }
+  if (avatarUrl !== undefined) { parts.push('avatar_url=?'); vals.push(avatarUrl); }
+  if (color !== undefined)     { parts.push('color=?');      vals.push(color); }
+  if (parts.length) { vals.push(userId); run(`UPDATE users SET ${parts.join(',')} WHERE id=?`, vals); }
+}
+
+function updatePassword(userId, newHash) {
+  run('UPDATE users SET password=? WHERE id=?', [newHash, userId]);
+}
+
+module.exports = Object.assign(module.exports || {}, { FriendRepo, updateProfile, updatePassword });
