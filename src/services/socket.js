@@ -5,6 +5,14 @@ const { socketAuth, checkSocketRateLimit, sanitizeText, isSuspicious } = require
 const { publish, subscribe, TOPICS } = require('./broker');
 const logger = require('../utils/logger');
 
+// Push notifications (optional — loaded lazily so it won't crash if web-push not installed)
+let pushRouter = null;
+function getPush() {
+  if (pushRouter) return pushRouter;
+  try { pushRouter = require('../routes/push'); } catch(e) {}
+  return pushRouter;
+}
+
 const BOT_COLORS = {'room-reza':'#7c3aed','room-anisa':'#db2777','room-dika':'#d97706','room-network':'#059669','room-audio':'#7c3aed'};
 const BOT_MAP    = {'room-reza':'bot-reza','room-anisa':'bot-anisa','room-dika':'bot-dika','room-network':'bot-farhan','room-audio':'bot-tono'};
 const BOT_NAMES  = {'bot-reza':'Reza','bot-anisa':'Anisa','bot-dika':'Dika','bot-farhan':'Farhan','bot-tono':'Tono'};
@@ -105,6 +113,51 @@ function initSocket(io) {
       };
 
       io.to(roomId).emit('new_message', msg);
+
+      // Push notification to offline members of this room
+      try {
+        const push = getPush();
+        if (push?.sendPushToUser) {
+          // Get room members (for DM: find the other user; for group: all non-sender members)
+          const roomData = query('SELECT type FROM rooms WHERE id=?', [roomId])[0];
+          let targetIds = [];
+          if (roomData?.type === 'private') {
+            // DM: find friend in this room
+            const friendships = query('SELECT user_id FROM friendships WHERE room_id=? AND user_id!=?', [roomId, userId]);
+            targetIds = friendships.map(f => f.user_id);
+          } else {
+            // Group: all members who joined this room via socket (track via online users)
+            // Just push to everyone who has subscription except sender
+            const allSubs = query('SELECT DISTINCT user_id FROM push_subscriptions WHERE user_id!=?', [userId]);
+            targetIds = allSubs.map(s => s.user_id);
+          }
+          const pushPayload = {
+            title: username,
+            body: safe ? (safe.length > 60 ? safe.slice(0,60)+'…' : safe) : '📎 Media baru',
+            icon: '/icons/icon-192.png',
+            badge: '/icons/icon-96.png',
+            tag: 'msg-' + roomId,
+            url: '/',
+            roomId,
+            sender: username,
+          };
+          // Only push to offline users (not currently connected to this room)
+          const socketsInRoom = io.sockets.adapter.rooms.get(roomId) || new Set();
+          for (const targetId of targetIds) {
+            // Check if user has active socket in this room
+            const userOnline = [...socketsInRoom].some(sid => {
+              const s = io.sockets.sockets.get(sid);
+              return s && s.data && s.data.userId === targetId;
+            });
+            if (!userOnline) {
+              push.sendPushToUser(targetId, pushPayload).catch(() => {});
+            }
+          }
+        }
+      } catch(pushErr) {
+        // Push is optional — never crash the message flow
+      }
+
       publish(TOPICS.CHAT_MESSAGE, { roomId, msgId, userId, username, preview: safe.slice(0,50) || '📎 Media' }, userId);
       if (suspicious) publish(TOPICS.SYSTEM_ALERT, { type: 'suspicious', msgId, userId, roomId }, 'system');
 
