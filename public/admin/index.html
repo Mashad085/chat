@@ -12,612 +12,776 @@
   --tp:#e9edef;--ts:#8696a0;--tm:#667781;
   --brd:rgba(255,255,255,.07);
   --success:#22c55e;--warn:#f59e0b;--danger:#ef4444;--info:#3b82f6;--purple:#8b5cf6;
+  --sb-w:230px;
 }
-html,body{height:100%;background:var(--bg);color:var(--tp);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px}
+html,body{height:100%;background:var(--bg);color:var(--tp);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;overflow:hidden}
 *{scrollbar-width:thin;scrollbar-color:var(--bg3) transparent}
-::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:var(--bg3)}
-
-/* ── LAYOUT ── */
-.shell{display:flex;height:100vh}
-.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--brd);display:flex;flex-direction:column;flex-shrink:0;transition:width .25s}
-.sidebar.collapsed{width:0;overflow:hidden}
-.sb-logo{padding:18px 16px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--brd)}
-.sb-logo svg{width:32px;height:32px;flex-shrink:0}
-.sb-logo span{font-size:16px;font-weight:700;color:var(--tp);white-space:nowrap}
-.sb-nav{flex:1;padding:8px 0;overflow-y:auto}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;color:var(--ts);transition:all .15s;border-left:3px solid transparent;white-space:nowrap;position:relative}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:2px}
+.shell{display:flex;height:100vh;position:relative}
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:49}
+.sb-overlay.show{display:block}
+.sidebar{width:var(--sb-w);background:var(--bg2);border-right:1px solid var(--brd);display:flex;flex-direction:column;flex-shrink:0;transition:transform .25s ease;z-index:50}
+@media(max-width:768px){.sidebar{position:fixed;top:0;left:0;height:100%;transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}}
+.sb-logo{padding:16px 14px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--brd)}
+.sb-logo svg{width:30px;height:30px;flex-shrink:0}
+.sb-logo-text{font-size:15px;font-weight:800;color:var(--tp);letter-spacing:-.3px}
+.sb-logo-sub{font-size:10px;color:var(--ts);letter-spacing:.3px;text-transform:uppercase}
+.sb-nav{flex:1;padding:6px 0;overflow-y:auto}
+.nav-section{padding:10px 14px 4px;font-size:10px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;color:var(--ts);transition:all .15s;border-left:3px solid transparent;white-space:nowrap}
 .nav-item:hover{background:rgba(255,255,255,.04);color:var(--tp)}
 .nav-item.active{background:rgba(0,168,132,.1);color:var(--acc);border-left-color:var(--acc)}
-.nav-item svg{width:18px;height:18px;flex-shrink:0}
-.nav-item span{font-size:13.5px;font-weight:500}
-.nav-badge{background:var(--danger);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;padding:0 4px;display:flex;align-items:center;justify-content:center;margin-left:auto}
-.sb-footer{padding:12px 16px;border-top:1px solid var(--brd)}
+.nav-item svg{width:17px;height:17px;flex-shrink:0}
+.nav-item span{font-size:13px;font-weight:500}
+.nav-badge{background:var(--danger);color:#fff;font-size:9.5px;font-weight:700;min-width:17px;height:17px;border-radius:9px;padding:0 4px;display:flex;align-items:center;justify-content:center;margin-left:auto}
+.sb-footer{padding:10px 14px;border-top:1px solid var(--brd)}
 .sb-user{display:flex;align-items:center;gap:9px}
-.sb-av{width:32px;height:32px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
-.sb-uinfo{flex:1;min-width:0}
+.sb-av{width:30px;height:30px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;color:#fff}
 .sb-uname{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sb-urole{font-size:11px;color:var(--ts)}
-
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.topbar{display:flex;align-items:center;padding:0 20px;height:56px;background:var(--bg2);border-bottom:1px solid var(--brd);flex-shrink:0;gap:12px}
-.menu-toggle{width:36px;height:36px;border-radius:8px;background:none;border:none;color:var(--icon,var(--ts));cursor:pointer;display:flex;align-items:center;justify-content:center}
+.sb-urole{font-size:10px;color:var(--ts)}
+.logout-btn{background:none;border:none;color:var(--ts);cursor:pointer;padding:4px;border-radius:6px;display:flex;align-items:center;transition:color .15s}
+.logout-btn:hover{color:var(--danger)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{display:flex;align-items:center;padding:0 16px;height:54px;background:var(--bg2);border-bottom:1px solid var(--brd);flex-shrink:0;gap:10px}
+.menu-toggle{width:34px;height:34px;border-radius:8px;background:none;border:none;color:var(--ts);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
 .menu-toggle:hover{background:rgba(255,255,255,.06)}
-.menu-toggle svg{width:20px;height:20px}
-.topbar h2{font-size:16px;font-weight:700;flex:1}
-.tb-right{display:flex;align-items:center;gap:8px}
-.tb-btn{padding:7px 14px;border-radius:8px;border:none;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:6px}
-.tb-btn svg{width:14px;height:14px}
-.tb-acc{background:var(--acc);color:#fff}
-.tb-acc:active{background:var(--accd)}
-.tb-ghost{background:rgba(255,255,255,.06);color:var(--ts)}
-.tb-ghost:hover{background:rgba(255,255,255,.1);color:var(--tp)}
-.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.dot-green{background:var(--success)}
-.dot-yellow{background:var(--warn)}
-.dot-red{background:var(--danger)}
-
-.content{flex:1;overflow-y:auto;padding:20px}
-
-/* ── PANELS ── */
-.panel{display:none}
-.panel.active{display:block}
-
-/* ── CARDS ── */
-.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-@media(max-width:900px){.grid-4{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:500px){.grid-4{grid-template-columns:1fr 1fr}}
-.stat-card{background:var(--bg2);border:1px solid var(--brd);border-radius:14px;padding:16px;position:relative;overflow:hidden}
-.stat-card::before{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;opacity:.08}
-.sc-label{font-size:11.5px;font-weight:600;color:var(--ts);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
-.sc-val{font-size:26px;font-weight:800;line-height:1}
-.sc-sub{font-size:11px;color:var(--ts);margin-top:6px}
-.sc-icon{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;opacity:.8}
-.sc-icon svg{width:18px;height:18px}
-
-/* ── TABLES ── */
-.card{background:var(--bg2);border:1px solid var(--brd);border-radius:14px;overflow:hidden;margin-bottom:16px}
-.card-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;border-bottom:1px solid var(--brd)}
-.card-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
-.card-title svg{width:16px;height:16px;color:var(--acc)}
-.card-badge{background:rgba(0,168,132,.15);color:var(--acc);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
-.tbl-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse}
-th{padding:10px 14px;text-align:left;font-size:11.5px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.4px;background:rgba(0,0,0,.2);white-space:nowrap}
-td{padding:10px 14px;font-size:13.5px;border-bottom:1px solid var(--brd)}
+.menu-toggle svg{width:19px;height:19px}
+.topbar-title{font-size:15px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.tb-btn{padding:6px 12px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.tb-btn svg{width:13px;height:13px}
+.tb-acc{background:var(--acc);color:#fff}.tb-acc:hover{background:var(--accl)}
+.tb-ghost{background:rgba(255,255,255,.06);color:var(--ts)}.tb-ghost:hover{background:rgba(255,255,255,.1);color:var(--tp)}
+.conn-status{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ts)}
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot-green{background:var(--success)}.dot-yellow{background:var(--warn)}.dot-red{background:var(--danger)}
+.content{flex:1;overflow-y:auto;padding:16px}
+.panel{display:none}.panel.active{display:block}
+.grid-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+@media(max-width:900px){.grid-stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.grid-stats{grid-template-columns:repeat(2,1fr);gap:8px}}
+.stat-card{background:var(--bg2);border:1px solid var(--brd);border-radius:13px;padding:14px 14px 12px;position:relative;overflow:hidden}
+.sc-icon{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center}
+.sc-icon svg{width:16px;height:16px}
+.sc-label{font-size:10.5px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.sc-val{font-size:24px;font-weight:800;line-height:1}
+.card{background:var(--bg2);border:1px solid var(--brd);border-radius:13px;overflow:hidden;margin-bottom:14px}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 16px 11px;border-bottom:1px solid var(--brd);flex-wrap:wrap;gap:8px}
+.card-title{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:7px}
+.card-title svg{width:15px;height:15px;color:var(--acc)}
+.card-badge{background:rgba(0,168,132,.15);color:var(--acc);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px}
+.card-actions{display:flex;gap:6px;align-items:center}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:400px}
+th{padding:9px 13px;text-align:left;font-size:10.5px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.4px;background:rgba(0,0,0,.15);white-space:nowrap}
+td{padding:9px 13px;font-size:13px;border-bottom:1px solid var(--brd)}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:rgba(255,255,255,.02)}
-.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700}
 .badge-green{background:rgba(34,197,94,.15);color:var(--success)}
 .badge-red{background:rgba(239,68,68,.15);color:var(--danger)}
 .badge-yellow{background:rgba(245,158,11,.15);color:var(--warn)}
 .badge-blue{background:rgba(59,130,246,.15);color:var(--info)}
 .badge-purple{background:rgba(139,92,246,.15);color:var(--purple)}
 .badge-gray{background:rgba(134,150,160,.1);color:var(--ts)}
-.act-btns{display:flex;gap:6px;flex-wrap:wrap}
-.act-btn{padding:5px 11px;border-radius:7px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:all .15s}
-.btn-red{background:rgba(239,68,68,.15);color:var(--danger)}
-.btn-red:hover{background:rgba(239,68,68,.25)}
-.btn-green{background:rgba(34,197,94,.15);color:var(--success)}
-.btn-green:hover{background:rgba(34,197,94,.25)}
-.btn-blue{background:rgba(59,130,246,.15);color:var(--info)}
-.btn-blue:hover{background:rgba(59,130,246,.25)}
-.btn-gray{background:rgba(134,150,160,.1);color:var(--ts)}
-.btn-gray:hover{background:rgba(134,150,160,.2)}
-
-/* ── CHART ── */
-.chart-wrap{padding:16px 18px}
-.chart-bars{display:flex;align-items:flex-end;gap:6px;height:120px}
-.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.label-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:700;color:#fff;margin:2px}
+.label-chip .lc-x{cursor:pointer;opacity:.75;font-size:12px;line-height:1;margin-left:2px}
+.label-chip .lc-x:hover{opacity:1}
+.act-btns{display:flex;gap:5px;flex-wrap:wrap}
+.act-btn{padding:4px 10px;border-radius:7px;font-size:11.5px;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.btn-red{background:rgba(239,68,68,.12);color:var(--danger)}.btn-red:hover{background:rgba(239,68,68,.25)}
+.btn-green{background:rgba(34,197,94,.12);color:var(--success)}.btn-green:hover{background:rgba(34,197,94,.25)}
+.btn-blue{background:rgba(59,130,246,.12);color:var(--info)}.btn-blue:hover{background:rgba(59,130,246,.25)}
+.btn-gray{background:rgba(134,150,160,.1);color:var(--ts)}.btn-gray:hover{background:rgba(134,150,160,.22)}
+.btn-purple{background:rgba(139,92,246,.12);color:var(--purple)}.btn-purple:hover{background:rgba(139,92,246,.25)}
+.danger-btn{background:var(--danger);color:#fff;padding:8px 16px;border-radius:9px;border:none;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:6px}
+.danger-btn:hover{background:#dc2626}
+.danger-btn svg{width:14px;height:14px}
+.chart-bars{display:flex;align-items:flex-end;gap:5px;height:110px;padding:14px 16px 8px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
 .bar-fill{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(to top,var(--acc),var(--accl));min-height:3px;transition:height .6s ease}
-.bar-label{font-size:10px;color:var(--ts);text-align:center;white-space:nowrap}
-.bar-count{font-size:10px;color:var(--tp);font-weight:600;text-align:center}
-
-/* ── BROKER STATS ── */
-.broker-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}
+.bar-label{font-size:9.5px;color:var(--ts);text-align:center}
+.bar-count{font-size:9.5px;color:var(--tp);font-weight:600}
+.online-list{display:flex;flex-wrap:wrap;gap:7px;padding:12px 14px}
+.online-chip{display:flex;align-items:center;gap:6px;background:var(--bg3);border-radius:20px;padding:4px 10px 4px 5px}
+.online-chip-av{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
+.online-chip span{font-size:12.5px;font-weight:500}
+.broker-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:12px}
 @media(max-width:400px){.broker-grid{grid-template-columns:1fr}}
-.bstat{background:var(--bg3);border-radius:10px;padding:14px}
-.bstat-label{font-size:11px;color:var(--ts);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
-.bstat-val{font-size:22px;font-weight:800}
-.broker-live{max-height:340px;overflow-y:auto}
-.live-event{display:flex;align-items:flex-start;gap:10px;padding:9px 16px;border-bottom:1px solid var(--brd);animation:fadeIn .25s ease}
+.bstat{background:var(--bg3);border-radius:10px;padding:12px}
+.bstat-label{font-size:10.5px;color:var(--ts);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.bstat-val{font-size:20px;font-weight:800}
+.broker-live{max-height:300px;overflow-y:auto}
+.live-event{display:flex;align-items:flex-start;gap:8px;padding:8px 14px;border-bottom:1px solid var(--brd);animation:fadeIn .25s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
-.le-topic{font-size:12px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(0,168,132,.15);color:var(--acc);white-space:nowrap;flex-shrink:0}
-.le-payload{font-size:12px;color:var(--ts);font-family:monospace;flex:1;word-break:break-all;line-height:1.4}
-.le-time{font-size:11px;color:var(--tm);flex-shrink:0}
-.topics-list{padding:0 16px 14px}
-.topic-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--brd)}
+.le-topic{font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;background:rgba(0,168,132,.15);color:var(--acc);white-space:nowrap;flex-shrink:0}
+.le-payload{font-size:11px;color:var(--ts);font-family:monospace;flex:1;word-break:break-all;line-height:1.4}
+.le-time{font-size:10.5px;color:var(--tm);flex-shrink:0}
+.topics-list{padding:0 14px 12px}
+.topic-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--brd)}
 .topic-row:last-child{border-bottom:none}
-.topic-name{font-size:13px;font-family:monospace;color:var(--tp);flex:1}
-.topic-bar-wrap{width:100px;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.topic-name{font-size:12.5px;font-family:monospace;flex:1}
+.topic-bar-wrap{width:80px;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
 .topic-bar{height:100%;background:var(--acc);border-radius:3px;transition:width .4s}
-.topic-count{font-size:13px;font-weight:700;color:var(--acc);min-width:28px;text-align:right}
-.mode-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600}
-
-/* ── ONLINE DOTS ── */
-.online-list{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px}
-.online-chip{display:flex;align-items:center;gap:6px;background:var(--bg3);border-radius:20px;padding:5px 12px 5px 7px}
-.online-chip-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
-.online-chip span{font-size:13px;font-weight:500}
-
-/* ── BROADCAST ── */
-.bcast-form{padding:16px}
-.bcast-inp{width:100%;background:var(--bg3);border:1.5px solid transparent;border-radius:10px;padding:10px 13px;font-size:14px;color:var(--tp);font-family:inherit;outline:none;resize:vertical;min-height:80px;transition:border-color .2s;caret-color:var(--acc)}
+.topic-count{font-size:12px;font-weight:700;color:var(--acc);min-width:24px;text-align:right}
+.mode-badge{font-size:10.5px;padding:2px 9px;border-radius:20px;font-weight:600}
+.bcast-inp{width:100%;background:var(--bg3);border:1.5px solid var(--brd);border-radius:10px;padding:9px 12px;font-size:13.5px;color:var(--tp);font-family:inherit;outline:none;resize:vertical;min-height:70px;transition:border-color .2s;caret-color:var(--acc)}
 .bcast-inp:focus{border-color:var(--acc)}
 .bcast-inp::placeholder{color:var(--tm)}
-
-/* ── AUDIT LOG COLORS ── */
-.al-login{color:var(--success)}
-.al-logout{color:var(--ts)}
-.al-ban{color:var(--danger)}
-.al-unban{color:var(--success)}
-.al-broadcast{color:var(--info)}
-.al-delete{color:var(--warn)}
-.al-register{color:var(--purple)}
-.al-other{color:var(--ts)}
-
-/* ── MODAL ── */
-.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+.al-login{color:var(--success)}.al-logout{color:var(--ts)}.al-ban{color:var(--danger)}
+.al-unban{color:var(--success)}.al-broadcast{color:var(--info)}.al-delete{color:var(--warn)}
+.al-register{color:var(--purple)}.al-other{color:var(--ts)}.al-create{color:var(--acc)}
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;display:none;align-items:flex-end;justify-content:center}
 .modal-ov.show{display:flex}
-.modal{background:var(--bg2);border:1px solid var(--brd);border-radius:16px;padding:24px;width:100%;max-width:420px}
-.modal h3{font-size:16px;font-weight:700;margin-bottom:16px}
-.mfld{margin-bottom:13px}
-.mfld label{display:block;font-size:11px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
-.mfld textarea,.mfld input{width:100%;background:var(--bg3);border:1.5px solid transparent;border-radius:9px;padding:9px 12px;font-size:14px;color:var(--tp);font-family:inherit;outline:none;resize:vertical;transition:border-color .2s;caret-color:var(--acc)}
-.mfld textarea:focus,.mfld input:focus{border-color:var(--acc)}
-.modal-btns{display:flex;gap:10px;margin-top:16px}
-.mbtn{flex:1;padding:10px;border-radius:9px;font-size:13.5px;font-weight:700;border:none;cursor:pointer;font-family:inherit;transition:all .15s}
-.mbtn-acc{background:var(--acc);color:#fff}
-.mbtn-gray{background:var(--bg3);color:var(--ts)}
-
-/* ── TOAST ── */
-.toast{position:fixed;bottom:20px;right:20px;background:var(--bg3);border:1px solid var(--brd);border-left:3px solid var(--acc);color:var(--tp);padding:11px 16px;border-radius:10px;font-size:13.5px;z-index:200;transform:translateY(60px);opacity:0;transition:all .28s ease;pointer-events:none;max-width:320px}
-.toast.show{transform:translateY(0);opacity:1}
-.empty-state{padding:40px;text-align:center;color:var(--ts);font-size:14px}
-.truncate{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(min-width:500px){.modal-ov{align-items:center;padding:16px}}
+.modal{background:var(--bg2);border:1px solid var(--brd);border-radius:20px 20px 0 0;padding:20px 20px 32px;width:100%;max-width:440px;animation:slideUp .22s ease}
+@media(min-width:500px){.modal{border-radius:16px;padding:22px}}
+@keyframes slideUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-handle{width:36px;height:3px;background:var(--brd);border-radius:2px;margin:0 auto 16px;display:block}
+@media(min-width:500px){.modal-handle{display:none}}
+.modal h3{font-size:15px;font-weight:700;margin-bottom:14px}
+.mfld{margin-bottom:12px}
+.mfld label{display:block;font-size:10.5px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.mfld select,.mfld textarea,.mfld input{width:100%;background:var(--bg3);border:1.5px solid var(--brd);border-radius:9px;padding:8px 11px;font-size:13.5px;color:var(--tp);font-family:inherit;outline:none;resize:vertical;transition:border-color .2s;caret-color:var(--acc);-webkit-appearance:none;appearance:none}
+.mfld select option{background:var(--bg3)}
+.mfld select:focus,.mfld textarea:focus,.mfld input:focus{border-color:var(--acc)}
+.mfld input::placeholder,.mfld textarea::placeholder{color:var(--tm)}
+.modal-btns{display:flex;gap:8px;margin-top:16px}
+.mbtn{flex:1;padding:10px;border-radius:9px;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:inherit;transition:all .15s}
+.mbtn-acc{background:var(--acc);color:#fff}.mbtn-acc:hover{background:var(--accl)}
+.mbtn-danger{background:var(--danger);color:#fff}
+.mbtn-gray{background:var(--bg3);color:var(--ts)}.mbtn-gray:hover{background:var(--bg4)}
+.color-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.color-opt{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;transition:all .15s;flex-shrink:0}
+.color-opt.selected{border-color:#fff;transform:scale(1.15)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--bg3);border:1px solid var(--brd);border-left:3px solid var(--acc);color:var(--tp);padding:10px 18px;border-radius:10px;font-size:13px;z-index:200;opacity:0;transition:all .28s ease;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.empty-state{padding:32px;text-align:center;color:var(--ts);font-size:13px}
+.truncate{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block}
+.avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.user-cell{display:flex;align-items:center;gap:8px}
+.user-info-name{font-weight:600;font-size:13px}
+.user-info-id{font-size:10.5px;color:var(--ts);font-family:monospace}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.two-col{grid-template-columns:1fr}}
+.danger-zone{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.danger-zone-label{font-weight:700;color:var(--danger);margin-bottom:2px;font-size:13.5px}
+.danger-zone-sub{color:var(--ts);font-size:12px}
+.label-manager{padding:14px 16px}
+.label-list-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;min-height:32px}
+.room-label-wrap{display:flex;flex-wrap:wrap;gap:3px}
+.label-palette{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}
+.label-preview-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+@media(max-width:768px){
+  .tb-btn span{display:none}.tb-btn svg{width:16px;height:16px}
+  table{min-width:300px}
+  td,th{padding:7px 9px;font-size:12px}
+}
 </style>
 </head>
 <body>
-
 <div class="shell">
-  <!-- SIDEBAR -->
-  <div class="sidebar" id="sidebar">
-    <div class="sb-logo">
-      <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="16" fill="#00a884"/><path d="M16 6C10.5 6 6 10.5 6 16c0 1.7.4 3.3 1.2 4.7L6 26l5.5-1.4c1.3.7 2.8 1.1 4.5 1.1 5.5 0 10-4.5 10-10S21.5 6 16 6z" fill="white"/></svg>
-      <span>ChatApp Admin</span>
+<div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sb-logo">
+    <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="16" fill="#00a884"/><path d="M16 6C10.5 6 6 10.5 6 16c0 1.7.4 3.3 1.2 4.7L6 26l5.5-1.4c1.3.7 2.8 1.1 4.5 1.1 5.5 0 10-4.5 10-10S21.5 6 16 6z" fill="white"/></svg>
+    <div><div class="sb-logo-text">ChatApp</div><div class="sb-logo-sub">Admin Panel</div></div>
+  </div>
+  <nav class="sb-nav" id="sbNav">
+    <div class="nav-section">Utama</div>
+    <div class="nav-item active" data-panel="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span>Dashboard</span>
     </div>
-    <nav class="sb-nav" id="sbNav">
-      <div class="nav-item active" data-panel="dashboard">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        <span>Dashboard</span>
-      </div>
-      <div class="nav-item" data-panel="users">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span>Pengguna</span>
-      </div>
-      <div class="nav-item" data-panel="rooms">
+    <div class="nav-item" data-panel="users">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Pengguna</span>
+    </div>
+    <div class="nav-section">Ruang Chat</div>
+    <div class="nav-item" data-panel="rooms">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>Semua Ruang</span>
+    </div>
+    <div class="nav-item" data-panel="bots">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M12 11V7M9 7h6M7 15h.01M17 15h.01"/></svg>
+      <span>Kelola Bot</span>
+      <span class="nav-badge" id="botBadge" style="display:none">0</span>
+    </div>
+    <div class="nav-item" data-panel="labels">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      <span>Label Chat</span>
+    </div>
+    <div class="nav-section">Monitor</div>
+    <div class="nav-item" data-panel="sessions">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span>Sesi Aktif</span>
+    </div>
+    <div class="nav-item" data-panel="flagged">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+      <span>Pesan Flagged</span>
+      <span class="nav-badge" id="flaggedBadge" style="display:none">0</span>
+    </div>
+    <div class="nav-item" data-panel="audit">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Audit Log</span>
+    </div>
+    <div class="nav-item" data-panel="broker">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Message Broker</span>
+      <span class="status-dot dot-green" id="brokerDot" style="margin-left:auto"></span>
+    </div>
+    <div class="nav-section">Aksi</div>
+    <div class="nav-item" data-panel="broadcast">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z"/></svg>
+      <span>Broadcast</span>
+    </div>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-av" id="sbAv">A</div>
+      <div style="flex:1;min-width:0"><div class="sb-uname" id="sbName">Admin</div><div class="sb-urole">Administrator</div></div>
+      <button class="logout-btn" onclick="doLogout()" title="Keluar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <h2 class="topbar-title" id="pageTitle">Dashboard</h2>
+    <div class="tb-right">
+      <div class="conn-status" id="connStatus"><span class="status-dot dot-green"></span><span>Live</span></div>
+      <button class="tb-btn tb-ghost" onclick="refreshCurrent()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.74-7.56"/></svg>
+        <span>Refresh</span>
+      </button>
+      <a href="/" target="_blank" class="tb-btn tb-acc" style="text-decoration:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        <span>Ruang Chat</span>
-      </div>
-      <div class="nav-item" data-panel="sessions">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span>Sesi Aktif</span>
-      </div>
-      <div class="nav-item" data-panel="flagged">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
-        <span>Pesan Flagged</span>
-        <span class="nav-badge" id="flaggedBadge" style="display:none">0</span>
-      </div>
-      <div class="nav-item" data-panel="audit">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        <span>Audit Log</span>
-      </div>
-      <div class="nav-item" data-panel="broker">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        <span>Message Broker</span>
-        <span class="status-dot dot-green" id="brokerDot" style="margin-left:auto"></span>
-      </div>
-      <div class="nav-item" data-panel="broadcast">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16l.92.92z"/></svg>
-        <span>Broadcast</span>
-      </div>
-    </nav>
-    <div class="sb-footer">
-      <div class="sb-user">
-        <div class="sb-av" id="sbAv">A</div>
-        <div class="sb-uinfo">
-          <div class="sb-uname" id="sbName">Admin</div>
-          <div class="sb-urole">Administrator</div>
-        </div>
-        <button onclick="doLogout()" title="Keluar" style="background:none;border:none;color:var(--ts);cursor:pointer;padding:4px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-        </button>
-      </div>
+        <span>Buka Chat</span>
+      </a>
     </div>
   </div>
 
-  <!-- MAIN -->
-  <div class="main">
-    <div class="topbar">
-      <button class="menu-toggle" onclick="toggleSidebar()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
-      <h2 id="pageTitle">Dashboard</h2>
-      <div class="tb-right">
-        <div id="connStatus" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ts)">
-          <span class="status-dot dot-green"></span><span>Live</span>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="grid-stats" id="statsGrid"></div>
+      <div class="two-col" style="margin-bottom:14px">
+        <div class="card">
+          <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Aktivitas Pesan 7 Hari</span></div>
+          <div class="chart-bars" id="msgChart"></div>
         </div>
-        <button class="tb-btn tb-ghost" onclick="refreshCurrent()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.74-7.56"/></svg>
-          Refresh
-        </button>
-        <a href="/" target="_blank" class="tb-btn tb-acc" style="text-decoration:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          Buka Chat
-        </a>
+        <div class="card">
+          <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Online Sekarang</span></div>
+          <div class="online-list" id="onlineList"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Top Ruang Chat</span></div>
+        <div class="tbl-wrap"><table><thead><tr><th>Ruang</th><th>Pesan</th></tr></thead><tbody id="topRoomsTbl"></tbody></table></div>
       </div>
     </div>
 
-    <div class="content">
+    <!-- USERS -->
+    <div class="panel" id="panel-users">
+      <div class="card">
+        <div class="card-hdr">
+          <span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Semua Pengguna</span>
+          <span class="card-badge" id="userCount">—</span>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Bergabung</th><th>Aksi</th></tr></thead>
+          <tbody id="usersTbl"></tbody>
+        </table></div>
+      </div>
+    </div>
 
-      <!-- DASHBOARD -->
-      <div class="panel active" id="panel-dashboard">
-        <div class="grid-4" id="statsGrid"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
-          <div class="card">
-            <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Aktivitas Pesan 7 Hari</span></div>
-            <div class="chart-wrap"><div class="chart-bars" id="msgChart"></div></div>
+    <!-- ROOMS -->
+    <div class="panel" id="panel-rooms">
+      <div class="card">
+        <div class="card-hdr">
+          <span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Semua Ruang Chat</span>
+          <div class="card-actions">
+            <span class="card-badge" id="roomCount">—</span>
+            <button class="act-btn btn-green" onclick="openModal('createRoomModal')">+ Buat Grup</button>
           </div>
-          <div class="card">
-            <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Online Sekarang</span></div>
-            <div class="online-list" id="onlineList"></div>
-          </div>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Nama Ruang</th><th>Tipe</th><th>Label</th><th>Pesan</th><th>Aksi</th></tr></thead>
+          <tbody id="roomsTbl"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- BOTS -->
+    <div class="panel" id="panel-bots">
+      <div class="danger-zone">
+        <div>
+          <div class="danger-zone-label">⚠️ Hapus Semua Bot</div>
+          <div class="danger-zone-sub">Hapus seluruh akun bot & pesan mereka secara permanen</div>
+        </div>
+        <button class="danger-btn" onclick="deleteAllBots()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          Hapus Semua Bot
+        </button>
+      </div>
+      <div class="card">
+        <div class="card-hdr">
+          <span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M12 11V7M9 7h6M7 15h.01M17 15h.01"/></svg>Daftar Bot</span>
+          <span class="card-badge" id="botCount">—</span>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Bot</th><th>Pesan Dikirim</th><th>Dibuat</th><th>Aksi</th></tr></thead>
+          <tbody id="botsTbl"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- LABELS -->
+    <div class="panel" id="panel-labels">
+      <div class="card">
+        <div class="card-hdr">
+          <span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Kelola Label</span>
+          <button class="act-btn btn-green" onclick="openModal('createLabelModal')">+ Buat Label</button>
+        </div>
+        <div class="label-manager">
+          <p style="font-size:12.5px;color:var(--ts);margin-bottom:12px">Label untuk mengkategorikan ruang chat. Satu ruang bisa punya beberapa label.</p>
+          <div class="label-list-wrap" id="labelList"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Label per Ruang</span></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Ruang</th><th>Tipe</th><th>Label Terpasang</th><th>Aksi</th></tr></thead>
+          <tbody id="roomLabelsTbl"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- SESSIONS -->
+    <div class="panel" id="panel-sessions">
+      <div class="card">
+        <div class="card-hdr">
+          <span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Sesi Aktif</span>
+          <span class="card-badge" id="sessCount">—</span>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>User</th><th>IP</th><th>Mulai</th><th>Aksi</th></tr></thead>
+          <tbody id="sessTbl"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- FLAGGED -->
+    <div class="panel" id="panel-flagged">
+      <div class="card">
+        <div class="card-hdr">
+          <span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>Pesan Flagged</span>
+          <span class="card-badge" id="flagCount">—</span>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Pesan</th><th>Pengirim</th><th>Ruang</th><th>Waktu</th><th>Aksi</th></tr></thead>
+          <tbody id="flagTbl"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- AUDIT -->
+    <div class="panel" id="panel-audit">
+      <div class="card">
+        <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Audit Log</span></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Waktu</th><th>User</th><th>Aksi</th><th>Target</th><th>Detail</th><th>IP</th></tr></thead>
+          <tbody id="auditTbl"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- BROKER -->
+    <div class="panel" id="panel-broker">
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-hdr">
+          <span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Statistik Broker</span>
+          <span id="brokerModeBadge" class="mode-badge badge-blue">in-process</span>
+        </div>
+        <div class="broker-grid">
+          <div class="bstat"><div class="bstat-label">Published</div><div class="bstat-val" id="bs-pub">—</div></div>
+          <div class="bstat"><div class="bstat-label">Delivered</div><div class="bstat-val" id="bs-con">—</div></div>
+          <div class="bstat"><div class="bstat-label">Active Topics</div><div class="bstat-val" id="bs-top">—</div></div>
+          <div class="bstat"><div class="bstat-label">Errors</div><div class="bstat-val" id="bs-err">—</div></div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">🏆 Top Topics</span></div>
+          <div class="topics-list" id="topTopics"></div>
         </div>
         <div class="card">
-          <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Top Ruang Chat</span></div>
-          <div class="tbl-wrap"><table><thead><tr><th>Ruang</th><th>Pesan</th></tr></thead><tbody id="topRoomsTbl"></tbody></table></div>
+          <div class="card-hdr"><span class="card-title">⚡ Live Events</span><span class="card-badge" id="liveCount">0</span></div>
+          <div class="broker-live" id="brokerLive"><div class="empty-state">Menunggu events...</div></div>
         </div>
       </div>
+    </div>
 
-      <!-- USERS -->
-      <div class="panel" id="panel-users">
-        <div class="card">
-          <div class="card-hdr">
-            <span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Semua Pengguna</span>
-            <span class="card-badge" id="userCount">-</span>
+    <!-- BROADCAST -->
+    <div class="panel" id="panel-broadcast">
+      <div class="card" style="max-width:560px">
+        <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Kirim Broadcast</span></div>
+        <div style="padding:14px 16px">
+          <div class="mfld"><label>Pesan Broadcast</label>
+            <textarea class="bcast-inp" id="bcastMsg" placeholder="Ketik pesan ke semua pengguna online..." rows="4"></textarea>
           </div>
-          <div class="tbl-wrap"><table>
-            <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Bergabung</th><th>Aksi</th></tr></thead>
-            <tbody id="usersTbl"></tbody>
-          </table></div>
+          <button class="tb-btn tb-acc" style="width:100%;justify-content:center;padding:11px;border-radius:10px;font-size:13px" onclick="sendBroadcast()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Kirim ke Semua User
+          </button>
         </div>
       </div>
-
-      <!-- ROOMS -->
-      <div class="panel" id="panel-rooms">
-        <div class="card">
-          <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Ruang Chat</span></div>
-          <div class="tbl-wrap"><table>
-            <thead><tr><th>Nama</th><th>Tipe</th><th>Pesan</th></tr></thead>
-            <tbody id="roomsTbl"></tbody>
-          </table></div>
-        </div>
+      <div class="card" style="max-width:560px;margin-top:12px">
+        <div class="card-hdr"><span class="card-title">Riwayat Broadcast</span></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Pesan</th><th>Oleh</th><th>Waktu</th></tr></thead>
+          <tbody id="bcastHistory"></tbody>
+        </table></div>
       </div>
+    </div>
 
-      <!-- SESSIONS -->
-      <div class="panel" id="panel-sessions">
-        <div class="card">
-          <div class="card-hdr">
-            <span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Sesi Aktif</span>
-            <span class="card-badge" id="sessCount">-</span>
-          </div>
-          <div class="tbl-wrap"><table>
-            <thead><tr><th>User</th><th>IP</th><th>Mulai</th><th>Aksi</th></tr></thead>
-            <tbody id="sessTbl"></tbody>
-          </table></div>
-        </div>
-      </div>
+  </div>
+</div>
+</div>
 
-      <!-- FLAGGED -->
-      <div class="panel" id="panel-flagged">
-        <div class="card">
-          <div class="card-hdr">
-            <span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>Pesan Flagged</span>
-            <span class="card-badge" id="flagCount">-</span>
-          </div>
-          <div class="tbl-wrap"><table>
-            <thead><tr><th>Pesan</th><th>Pengirim</th><th>Ruang</th><th>Waktu</th><th>Aksi</th></tr></thead>
-            <tbody id="flagTbl"></tbody>
-          </table></div>
-        </div>
-      </div>
-
-      <!-- AUDIT -->
-      <div class="panel" id="panel-audit">
-        <div class="card">
-          <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Audit Log</span></div>
-          <div class="tbl-wrap"><table>
-            <thead><tr><th>Waktu</th><th>User</th><th>Aksi</th><th>Target</th><th>Detail</th><th>IP</th></tr></thead>
-            <tbody id="auditTbl"></tbody>
-          </table></div>
-        </div>
-      </div>
-
-      <!-- BROKER -->
-      <div class="panel" id="panel-broker">
-        <div class="card" style="margin-bottom:14px">
-          <div class="card-hdr">
-            <span class="card-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              Statistik Broker
-            </span>
-            <span id="brokerModeBadge" class="mode-badge badge-green">in-process</span>
-          </div>
-          <div class="broker-grid" id="brokerStats">
-            <div class="bstat"><div class="bstat-label">Published</div><div class="bstat-val" id="bs-pub">—</div></div>
-            <div class="bstat"><div class="bstat-label">Consumed (Delivered)</div><div class="bstat-val" id="bs-con">—</div></div>
-            <div class="bstat"><div class="bstat-label">Active Topics</div><div class="bstat-val" id="bs-top">—</div></div>
-            <div class="bstat"><div class="bstat-label">Errors</div><div class="bstat-val" id="bs-err">—</div></div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-          <div class="card">
-            <div class="card-hdr"><span class="card-title">🏆 Top Topics</span></div>
-            <div class="topics-list" id="topTopics"></div>
-          </div>
-          <div class="card">
-            <div class="card-hdr">
-              <span class="card-title">⚡ Live Events</span>
-              <span class="card-badge" id="liveCount">0</span>
-            </div>
-            <div class="broker-live" id="brokerLive">
-              <div class="empty-state">Menunggu events...</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- BROADCAST -->
-      <div class="panel" id="panel-broadcast">
-        <div class="card" style="max-width:560px">
-          <div class="card-hdr"><span class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 12 19.79 19.79 0 0 1 1.04 3.4 2 2 0 0 1 3 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z"/></svg>Kirim Broadcast</span></div>
-          <div class="bcast-form">
-            <div class="mfld"><label>Pesan Broadcast</label>
-              <textarea class="bcast-inp" id="bcastMsg" placeholder="Ketik pesan yang akan dikirim ke semua pengguna online..." rows="4"></textarea>
-            </div>
-            <button class="tb-btn tb-acc" style="width:100%;justify-content:center;padding:11px" onclick="sendBroadcast()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-              Kirim ke Semua User
-            </button>
-          </div>
-        </div>
-        <div class="card" style="max-width:560px;margin-top:14px">
-          <div class="card-hdr"><span class="card-title">Riwayat Broadcast</span></div>
-          <div class="tbl-wrap"><table>
-            <thead><tr><th>Pesan</th><th>Oleh</th><th>Waktu</th></tr></thead>
-            <tbody id="bcastHistory"></tbody>
-          </table></div>
-        </div>
-      </div>
-
-    </div><!-- /content -->
-  </div><!-- /main -->
-</div><!-- /shell -->
-
-<!-- BAN MODAL -->
+<!-- MODALS -->
 <div class="modal-ov" id="banModal">
   <div class="modal">
+    <span class="modal-handle"></span>
     <h3>🚫 Ban Pengguna</h3>
     <input type="hidden" id="banUserId">
     <div class="mfld"><label>Alasan Ban</label><textarea id="banReason" rows="3" placeholder="Masukkan alasan..."></textarea></div>
     <div class="modal-btns">
       <button class="mbtn mbtn-gray" onclick="closeModal('banModal')">Batal</button>
-      <button class="mbtn" style="background:var(--danger);color:#fff" onclick="confirmBan()">Ban User</button>
+      <button class="mbtn mbtn-danger" onclick="confirmBan()">Ban User</button>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
+<div class="modal-ov" id="createRoomModal">
+  <div class="modal">
+    <span class="modal-handle"></span>
+    <h3>💬 Buat Grup Baru</h3>
+    <div class="mfld"><label>Nama Grup *</label><input id="newRoomName" type="text" placeholder="Contoh: Tim Proyek Alpha"></div>
+    <div class="mfld"><label>Deskripsi (opsional)</label><textarea id="newRoomDesc" rows="2" placeholder="Deskripsi singkat..."></textarea></div>
+    <div class="mfld"><label>Tipe Ruang</label>
+      <select id="newRoomType">
+        <option value="group">Grup — semua bisa bergabung</option>
+        <option value="private">Privat</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn mbtn-gray" onclick="closeModal('createRoomModal')">Batal</button>
+      <button class="mbtn mbtn-acc" onclick="createRoom()">Buat Grup</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="createLabelModal">
+  <div class="modal">
+    <span class="modal-handle"></span>
+    <h3>🏷️ Buat Label Baru</h3>
+    <div class="mfld"><label>Nama Label *</label><input id="newLabelName" type="text" placeholder="Contoh: Penting, Kerja, Pribadi..."></div>
+    <div class="mfld">
+      <label>Warna Label</label>
+      <div class="label-palette" id="labelColorPicker"></div>
+    </div>
+    <div class="label-preview-row">
+      <div id="labelPreview" style="padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;color:#fff;background:#00a884;display:inline-block">Preview Label</div>
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn mbtn-gray" onclick="closeModal('createLabelModal')">Batal</button>
+      <button class="mbtn mbtn-acc" onclick="createLabel()">Buat Label</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="assignLabelModal">
+  <div class="modal">
+    <span class="modal-handle"></span>
+    <h3>🏷️ Pasang Label ke Ruang</h3>
+    <input type="hidden" id="assignRoomId">
+    <div class="mfld"><label>Pilih Label</label><select id="assignLabelSelect"></select></div>
+    <div class="modal-btns">
+      <button class="mbtn mbtn-gray" onclick="closeModal('assignLabelModal')">Batal</button>
+      <button class="mbtn mbtn-acc" onclick="confirmAssignLabel()">Pasang Label</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="confirmModal">
+  <div class="modal">
+    <span class="modal-handle"></span>
+    <h3 id="confirmTitle">Konfirmasi</h3>
+    <p id="confirmText" style="color:var(--ts);font-size:13px;line-height:1.6;margin-bottom:4px"></p>
+    <div class="modal-btns">
+      <button class="mbtn mbtn-gray" onclick="closeModal('confirmModal')">Batal</button>
+      <button class="mbtn mbtn-danger" id="confirmOkBtn">Hapus</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-// ─── AUTH ───────────────────────────────────────────────
 let token = localStorage.getItem('chattoken');
-let me = {};
-let currentPanel = 'dashboard';
-let adminSocket = null;
-let liveEventCount = 0;
+let me = {}, currentPanel = 'dashboard', adminSocket = null, liveEventCount = 0;
+let allLabels = [], allRooms = [];
+const LABEL_COLORS = ['#00a884','#3b82f6','#ef4444','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316','#22c55e','#6366f1'];
+let selectedLabelColor = LABEL_COLORS[0];
 
 async function checkAuth() {
-  if (!token) { location.href = '/'; return; }
+  if (!token) { location.href='/'; return; }
   try {
     const r = await api('/api/auth/me');
-    if (!r || r.error) { location.href = '/'; return; }
+    if (!r||r.error) { location.href='/'; return; }
     me = r;
-    if (me.role !== 'admin') { location.href = '/'; return; }
+    if (me.role!=='admin') { location.href='/'; return; }
     document.getElementById('sbName').textContent = me.username;
     document.getElementById('sbAv').textContent = me.username[0].toUpperCase();
-    document.getElementById('sbAv').style.background = me.color || '#00a884';
+    document.getElementById('sbAv').style.background = me.color||'#00a884';
     init();
-  } catch { location.href = '/'; }
+  } catch { location.href='/'; }
 }
+function doLogout() { api('/api/auth/logout','POST'); localStorage.removeItem('chattoken'); location.href='/'; }
 
-function doLogout() {
-  api('/api/auth/logout','POST');
-  localStorage.removeItem('chattoken');
-  location.href = '/';
-}
-
-// ─── INIT ────────────────────────────────────────────────
 function init() {
-  setupNav();
-  loadDashboard();
-  connectAdminSocket();
-  setInterval(() => { if (currentPanel === 'dashboard') loadDashboard(); }, 30000);
+  setupNav(); buildLabelColorPicker(); loadDashboard(); connectAdminSocket();
+  setInterval(()=>{ if(currentPanel==='dashboard') loadDashboard(); },30000);
+}
+function setupNav() {
+  document.querySelectorAll('.nav-item[data-panel]').forEach(el=>{
+    el.addEventListener('click',()=>{ switchPanel(el.dataset.panel); closeSidebar(); });
+  });
+}
+function switchPanel(id) {
+  currentPanel=id;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.panel===id));
+  document.querySelectorAll('.panel').forEach(el=>el.classList.toggle('active',el.id==='panel-'+id));
+  const titles={dashboard:'Dashboard',users:'Pengguna',rooms:'Semua Ruang Chat',bots:'Kelola Bot',labels:'Label Chat',sessions:'Sesi Aktif',flagged:'Pesan Flagged',audit:'Audit Log',broker:'Message Broker',broadcast:'Broadcast'};
+  document.getElementById('pageTitle').textContent=titles[id]||id;
+  loadPanel(id);
+}
+function refreshCurrent() { loadPanel(currentPanel); }
+function loadPanel(id) {
+  if(id==='dashboard') loadDashboard();
+  else if(id==='users') loadUsers();
+  else if(id==='rooms') loadRooms();
+  else if(id==='bots') loadBots();
+  else if(id==='labels') loadLabels();
+  else if(id==='sessions') loadSessions();
+  else if(id==='flagged') loadFlagged();
+  else if(id==='audit') loadAudit();
+  else if(id==='broker') loadBroker();
+  else if(id==='broadcast') loadBroadcast();
+}
+function toggleSidebar() {
+  const sb=document.getElementById('sidebar'), ov=document.getElementById('sbOverlay');
+  const open=sb.classList.toggle('open'); ov.classList.toggle('show',open);
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sbOverlay').classList.remove('show');
 }
 
-function setupNav() {
-  document.querySelectorAll('.nav-item[data-panel]').forEach(el => {
-    el.addEventListener('click', () => switchPanel(el.dataset.panel));
+async function loadDashboard() {
+  const [stats,online]=await Promise.all([api('/api/admin/stats'),api('/api/admin/online')]);
+  if(!stats) return;
+  const cards=[
+    {label:'Total User',val:stats.totalUsers,color:'var(--acc)',icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>'},
+    {label:'Total Pesan',val:stats.totalMsgs,color:'var(--info)',icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'},
+    {label:'Sesi Aktif',val:stats.activeSess,color:'var(--success)',icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'},
+    {label:'Total Ruang',val:stats.totalRooms,color:'var(--purple)',icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'},
+    {label:'Online',val:(online||[]).length,color:'var(--success)',icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'},
+    {label:'Flagged',val:stats.flagged,color:stats.flagged>0?'var(--warn)':'var(--ts)',icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>'},
+  ];
+  document.getElementById('statsGrid').innerHTML=cards.map(c=>`<div class="stat-card"><div class="sc-icon" style="background:${c.color}22;color:${c.color}">${c.icon}</div><div class="sc-label">${c.label}</div><div class="sc-val" style="color:${c.color}">${c.val}</div></div>`).join('');
+  if(stats.flagged>0){document.getElementById('flaggedBadge').textContent=stats.flagged;document.getElementById('flaggedBadge').style.display='flex';}
+  const days=stats.msgPerDay||[], max=Math.max(...days.map(d=>d.count),1);
+  document.getElementById('msgChart').innerHTML=days.map(d=>`<div class="bar-col"><div class="bar-count">${d.count}</div><div class="bar-fill" style="height:${Math.round(d.count/max*80)+8}px"></div><div class="bar-label">${(d.day||'').slice(5)}</div></div>`).join('')||'<div class="empty-state">Belum ada data</div>';
+  const ol=document.getElementById('onlineList');
+  if(!online||!online.length){ol.innerHTML='<div style="color:var(--ts);font-size:12.5px;padding:4px">Tidak ada user online</div>';}
+  else ol.innerHTML=online.map(u=>`<div class="online-chip"><div class="online-chip-av" style="background:${u.color||'#059669'}">${(u.username||'?')[0].toUpperCase()}</div><span>${esc(u.username||'-')}</span></div>`).join('');
+  document.getElementById('topRoomsTbl').innerHTML=(stats.topRooms||[]).map(r=>`<tr><td>${esc(r.name)}</td><td><b style="color:var(--acc)">${r.msg_count}</b></td></tr>`).join('')||'<tr><td colspan="2" class="empty-state">Belum ada data</td></tr>';
+}
+
+async function loadUsers() {
+  const data=await api('/api/admin/users'); if(!data) return;
+  const humans=data.filter(u=>u.role!=='bot');
+  document.getElementById('userCount').textContent=humans.length;
+  document.getElementById('usersTbl').innerHTML=humans.map(u=>`<tr>
+    <td><div class="user-cell"><div class="avatar" style="background:${u.color||'#059669'}">${(u.username||'?')[0].toUpperCase()}</div>
+    <div><div class="user-info-name">${esc(u.username)}</div><div class="user-info-id">${u.id.slice(0,12)}…</div></div></div></td>
+    <td><span class="badge ${u.role==='admin'?'badge-purple':'badge-gray'}">${u.role}</span></td>
+    <td><span class="badge ${u.is_banned?'badge-red':u.status==='online'?'badge-green':'badge-gray'}">${u.is_banned?'Banned':u.status||'offline'}</span></td>
+    <td style="color:var(--ts);font-size:12px">${fmtDate(u.created_at)}</td>
+    <td>${u.role!=='admin'?(u.is_banned?`<button class="act-btn btn-green" onclick="unbanUser('${u.id}')">Unban</button>`:`<button class="act-btn btn-red" onclick="openBanModal('${u.id}')">Ban</button>`):'<span style="color:var(--ts);font-size:12px">—</span>'}</td>
+  </tr>`).join('');
+}
+function openBanModal(uid){document.getElementById('banUserId').value=uid;document.getElementById('banReason').value='';openModal('banModal');}
+async function confirmBan(){
+  const uid=document.getElementById('banUserId').value,reason=document.getElementById('banReason').value.trim()||'Melanggar ketentuan';
+  await api('/api/admin/ban/'+uid,'POST',{reason}); closeModal('banModal'); showToast('✅ User di-ban'); loadUsers();
+}
+async function unbanUser(uid){await api('/api/admin/unban/'+uid,'POST'); showToast('✅ User di-unban'); loadUsers();}
+
+async function loadRooms() {
+  const data=await api('/api/admin/rooms'); if(!data) return;
+  allRooms=data; document.getElementById('roomCount').textContent=data.length;
+  document.getElementById('roomsTbl').innerHTML=data.map(r=>{
+    const lbls=(r.labels||[]).map(l=>`<span class="label-chip" style="background:${l.color}">${esc(l.name)}</span>`).join('');
+    return `<tr>
+      <td><b>${esc(r.name)}</b><br><span style="font-size:10px;color:var(--ts);font-family:monospace">${r.id.slice(0,20)}…</span></td>
+      <td><span class="badge ${r.type==='group'?'badge-blue':'badge-gray'}">${r.type}</span></td>
+      <td><div class="room-label-wrap">${lbls||'<span style="color:var(--tm);font-size:12px">—</span>'}</div></td>
+      <td><b style="color:var(--acc)">${r.msg_count||0}</b></td>
+      <td><div class="act-btns">
+        <button class="act-btn btn-purple" onclick="openAssignLabel('${r.id}')">+ Label</button>
+        <button class="act-btn btn-red" onclick="confirmDeleteRoom('${r.id}','${esc(r.name)}')">Hapus</button>
+      </div></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="5" class="empty-state">Belum ada ruang</td></tr>';
+}
+async function createRoom(){
+  const name=document.getElementById('newRoomName').value.trim();
+  if(!name){showToast('⚠️ Nama grup wajib diisi');return;}
+  const desc=document.getElementById('newRoomDesc').value.trim(), type=document.getElementById('newRoomType').value;
+  const r=await api('/api/admin/rooms','POST',{name,description:desc,type});
+  if(r&&r.ok){closeModal('createRoomModal');document.getElementById('newRoomName').value='';document.getElementById('newRoomDesc').value='';showToast('✅ Grup berhasil dibuat');loadRooms();}
+  else showToast('❌ Gagal membuat grup');
+}
+function confirmDeleteRoom(id,name){
+  showConfirm('🗑️ Hapus Ruang',`Hapus ruang "<b>${esc(name)}</b>"? Semua pesan di ruang ini akan terhapus.`,async()=>{
+    await api('/api/admin/rooms/'+id,'DELETE'); showToast('✅ Ruang dihapus'); loadRooms();
   });
 }
 
-function switchPanel(id) {
-  currentPanel = id;
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.panel === id));
-  document.querySelectorAll('.panel').forEach(el => el.classList.toggle('active', el.id === 'panel-' + id));
-  const titles = {
-    dashboard:'Dashboard', users:'Pengguna', rooms:'Ruang Chat',
-    sessions:'Sesi Aktif', flagged:'Pesan Flagged', audit:'Audit Log',
-    broker:'Message Broker', broadcast:'Broadcast'
-  };
-  document.getElementById('pageTitle').textContent = titles[id] || id;
-  loadPanel(id);
-}
-
-function refreshCurrent() { loadPanel(currentPanel); }
-
-function loadPanel(id) {
-  if (id === 'dashboard') loadDashboard();
-  else if (id === 'users') loadUsers();
-  else if (id === 'rooms') loadRooms();
-  else if (id === 'sessions') loadSessions();
-  else if (id === 'flagged') loadFlagged();
-  else if (id === 'audit') loadAudit();
-  else if (id === 'broker') loadBroker();
-  else if (id === 'broadcast') loadBroadcast();
-}
-
-// ─── DASHBOARD ───────────────────────────────────────────
-async function loadDashboard() {
-  const [stats, online] = await Promise.all([api('/api/admin/stats'), api('/api/admin/online')]);
-  if (!stats) return;
-
-  const cards = [
-    { label:'Total User', val:stats.totalUsers, color:'var(--acc)', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>` },
-    { label:'Total Pesan', val:stats.totalMsgs, color:'var(--info)', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>` },
-    { label:'Sesi Aktif', val:stats.activeSess, color:'var(--success)', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>` },
-    { label:'Flagged', val:stats.flagged, color:stats.flagged>0?'var(--warn)':'var(--ts)', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>` },
-    { label:'Ruangan', val:stats.totalRooms, color:'var(--purple)', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>` },
-    { label:'Banned', val:stats.banned, color:stats.banned>0?'var(--danger)':'var(--ts)', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>` },
-    { label:'Online', val:(online||[]).length, color:'var(--success)', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>` },
-    { label:'Total Ruang', val:stats.totalRooms, color:'var(--acc)', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>` },
-  ].slice(0,8);
-
-  document.getElementById('statsGrid').innerHTML = cards.map(c => `
-    <div class="stat-card">
-      <div class="sc-icon" style="background:${c.color}22;color:${c.color}">${c.icon}</div>
-      <div class="sc-label">${c.label}</div>
-      <div class="sc-val" style="color:${c.color}">${c.val}</div>
-    </div>`).join('');
-
-  if (stats.flagged > 0) {
-    document.getElementById('flaggedBadge').textContent = stats.flagged;
-    document.getElementById('flaggedBadge').style.display = 'flex';
-  }
-
-  // Chart
-  const days = stats.msgPerDay || [];
-  const max = Math.max(...days.map(d => d.count), 1);
-  document.getElementById('msgChart').innerHTML = days.map(d => `
-    <div class="bar-col">
-      <div class="bar-count">${d.count}</div>
-      <div class="bar-fill" style="height:${Math.round(d.count/max*90)+8}px"></div>
-      <div class="bar-label">${(d.day||'').slice(5)}</div>
-    </div>`).join('') || '<div class="empty-state">Belum ada data</div>';
-
-  // Online list
-  const ol = document.getElementById('onlineList');
-  if (!online || !online.length) { ol.innerHTML = '<div style="color:var(--ts);font-size:13px;padding:4px">Tidak ada user online</div>'; }
-  else ol.innerHTML = online.map(u => `
-    <div class="online-chip">
-      <div class="online-chip-av" style="background:${u.color||'#059669'}">${(u.username||'?')[0].toUpperCase()}</div>
-      <span>${esc(u.username||'-')}</span>
-    </div>`).join('');
-
-  // Top rooms
-  document.getElementById('topRoomsTbl').innerHTML = (stats.topRooms||[]).map(r => `
-    <tr><td>${esc(r.name)}</td><td>${r.msg_count}</td></tr>`).join('') || '<tr><td colspan="2" class="empty-state">Belum ada data</td></tr>';
-}
-
-// ─── USERS ───────────────────────────────────────────────
-async function loadUsers() {
-  const data = await api('/api/admin/users');
-  if (!data) return;
-  document.getElementById('userCount').textContent = data.length;
-  document.getElementById('usersTbl').innerHTML = data.map(u => `
-    <tr>
-      <td><div style="display:flex;align-items:center;gap:8px">
-        <div style="width:32px;height:32px;border-radius:50%;background:${u.color||'#059669'};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${(u.username||'?')[0].toUpperCase()}</div>
-        <div>
-          <div style="font-weight:600">${esc(u.username)}</div>
-          <div style="font-size:11px;color:var(--ts);font-family:monospace">${u.id.slice(0,12)}...</div>
-        </div>
-      </div></td>
-      <td><span class="badge ${u.role==='admin'?'badge-purple':u.role==='bot'?'badge-blue':'badge-gray'}">${u.role}</span></td>
-      <td><span class="badge ${u.is_banned?'badge-red':u.status==='online'?'badge-green':'badge-gray'}">${u.is_banned?'Banned':u.status||'offline'}</span></td>
-      <td style="color:var(--ts);font-size:12px">${fmtDate(u.created_at)}</td>
-      <td>
-        ${u.role !== 'admin' ? (u.is_banned
-          ? `<button class="act-btn btn-green" onclick="unbanUser('${u.id}')">Unban</button>`
-          : `<button class="act-btn btn-red" onclick="openBanModal('${u.id}')">Ban</button>`)
-          : '<span style="color:var(--ts);font-size:12px">—</span>'}
-      </td>
+async function loadBots(){
+  const data=await api('/api/admin/bots'); if(!data) return;
+  document.getElementById('botCount').textContent=data.length;
+  document.getElementById('botBadge').textContent=data.length;
+  document.getElementById('botBadge').style.display=data.length>0?'flex':'none';
+  document.getElementById('botsTbl').innerHTML=!data.length
+    ?'<tr><td colspan="4" class="empty-state">🎉 Tidak ada bot! Ruang chat bersih.</td></tr>'
+    :data.map(b=>`<tr>
+      <td><div class="user-cell"><div class="avatar" style="background:${b.color||'#7c3aed'}">${(b.username||'?')[0].toUpperCase()}</div>
+      <div><div class="user-info-name">${esc(b.username)}</div><span class="badge badge-blue">bot</span></div></div></td>
+      <td><b style="color:var(--info)">${b.msg_count||0}</b></td>
+      <td style="font-size:12px;color:var(--ts)">${fmtDate(b.created_at)}</td>
+      <td><button class="act-btn btn-red" onclick="confirmDeleteBot('${b.id}','${esc(b.username)}')">Hapus Bot</button></td>
     </tr>`).join('');
 }
-
-function openBanModal(uid) { document.getElementById('banUserId').value = uid; openModal('banModal'); }
-async function confirmBan() {
-  const uid = document.getElementById('banUserId').value;
-  const reason = document.getElementById('banReason').value.trim() || 'Melanggar ketentuan';
-  await api('/api/admin/ban/'+uid, 'POST', { reason });
-  closeModal('banModal'); showToast('✅ User dibanned'); loadUsers();
+function confirmDeleteBot(id,name){
+  showConfirm('🤖 Hapus Bot',`Hapus bot "<b>${name}</b>" beserta semua pesannya?`,async()=>{
+    await api('/api/admin/bots/'+id,'DELETE'); showToast('✅ Bot dihapus'); loadBots();
+  });
 }
-async function unbanUser(uid) {
-  await api('/api/admin/unban/'+uid, 'POST');
-  showToast('✅ User di-unban'); loadUsers();
+async function deleteAllBots(){
+  showConfirm('⚠️ Hapus SEMUA Bot','Ini akan menghapus <b>semua bot</b> dan pesan mereka secara permanen. Tidak bisa dibatalkan!',async()=>{
+    const r=await api('/api/admin/bots','DELETE');
+    if(r&&r.ok){showToast(`✅ ${r.count} bot dihapus`);loadBots();document.getElementById('botBadge').style.display='none';}
+    else showToast('❌ Gagal hapus bot');
+  });
 }
 
-// ─── ROOMS ───────────────────────────────────────────────
-async function loadRooms() {
-  const data = await api('/api/admin/rooms');
-  if (!data) return;
-  document.getElementById('roomsTbl').innerHTML = data.map(r => `
-    <tr>
-      <td><b>${esc(r.name)}</b><br><span style="font-size:11px;color:var(--ts);font-family:monospace">${r.id}</span></td>
+function buildLabelColorPicker(){
+  document.getElementById('labelColorPicker').innerHTML=LABEL_COLORS.map((c,i)=>
+    `<div class="color-opt${i===0?' selected':''}" style="background:${c}" data-color="${c}" onclick="selectLabelColor('${c}')"></div>`
+  ).join('');
+}
+function selectLabelColor(color){
+  selectedLabelColor=color;
+  document.querySelectorAll('.color-opt').forEach(el=>el.classList.toggle('selected',el.dataset.color===color));
+  const prev=document.getElementById('labelPreview');
+  prev.style.background=color; prev.textContent=document.getElementById('newLabelName').value||'Preview Label';
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const inp=document.getElementById('newLabelName');
+  if(inp) inp.addEventListener('input',()=>{ document.getElementById('labelPreview').textContent=inp.value||'Preview Label'; });
+});
+
+async function loadLabels(){
+  const [labels,rooms]=await Promise.all([api('/api/admin/labels'),api('/api/admin/rooms')]);
+  allLabels=labels||[]; allRooms=rooms||[];
+  // Render label list
+  const wrap=document.getElementById('labelList');
+  wrap.innerHTML=!allLabels.length
+    ?'<div style="color:var(--ts);font-size:13px">Belum ada label. Buat label baru di atas.</div>'
+    :allLabels.map(l=>`<div class="label-chip" style="background:${l.color};padding:5px 12px;cursor:default">${esc(l.name)} <span style="opacity:.6;font-size:11px">(${l.room_count||0})</span> <span class="lc-x" onclick="confirmDeleteLabel('${l.id}','${esc(l.name)}')">✕</span></div>`).join('');
+  // Render room-labels table
+  document.getElementById('roomLabelsTbl').innerHTML=allRooms.map(r=>{
+    const lbls=(r.labels||[]).map(l=>`<span class="label-chip" style="background:${l.color}">${esc(l.name)}<span class="lc-x" onclick="removeLabelFromRoom('${r.id}','${l.id}')">✕</span></span>`).join('');
+    return `<tr>
+      <td><b>${esc(r.name)}</b></td>
       <td><span class="badge ${r.type==='group'?'badge-blue':'badge-gray'}">${r.type}</span></td>
-      <td>${r.msg_count||0}</td>
-    </tr>`).join('');
+      <td><div class="room-label-wrap">${lbls||'<span style="color:var(--tm);font-size:12px">Belum ada</span>'}</div></td>
+      <td><button class="act-btn btn-purple" onclick="openAssignLabelFrom('${r.id}')">+ Pasang</button></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="4" class="empty-state">Belum ada ruang</td></tr>';
+}
+async function createLabel(){
+  const name=document.getElementById('newLabelName').value.trim();
+  if(!name){showToast('⚠️ Nama label wajib diisi');return;}
+  const r=await api('/api/admin/labels','POST',{name,color:selectedLabelColor});
+  if(r&&r.ok){closeModal('createLabelModal');document.getElementById('newLabelName').value='';showToast('✅ Label dibuat');loadLabels();}
+  else showToast('❌ Gagal membuat label');
+}
+function confirmDeleteLabel(id,name){
+  showConfirm('🏷️ Hapus Label',`Hapus label "<b>${name}</b>"? Label ini akan dilepas dari semua ruang.`,async()=>{
+    await api('/api/admin/labels/'+id,'DELETE'); showToast('✅ Label dihapus'); loadLabels();
+  });
+}
+function openAssignLabel(roomId){ _openAssign(roomId); }
+function openAssignLabelFrom(roomId){ _openAssign(roomId); }
+function _openAssign(roomId){
+  if(!allLabels.length){showToast('⚠️ Buat label dulu di menu Label Chat');return;}
+  document.getElementById('assignRoomId').value=roomId;
+  document.getElementById('assignLabelSelect').innerHTML=allLabels.map(l=>`<option value="${l.id}">${l.name}</option>`).join('');
+  openModal('assignLabelModal');
+}
+async function confirmAssignLabel(){
+  const roomId=document.getElementById('assignRoomId').value, labelId=document.getElementById('assignLabelSelect').value;
+  await api(`/api/admin/rooms/${roomId}/labels/${labelId}`,'POST');
+  closeModal('assignLabelModal'); showToast('✅ Label dipasang');
+  loadRooms(); if(currentPanel==='labels') loadLabels();
+}
+async function removeLabelFromRoom(roomId,labelId){
+  await api(`/api/admin/rooms/${roomId}/labels/${labelId}`,'DELETE');
+  showToast('✅ Label dilepas'); loadLabels();
 }
 
-// ─── SESSIONS ────────────────────────────────────────────
-async function loadSessions() {
-  const data = await api('/api/admin/sessions');
-  if (!data) return;
-  document.getElementById('sessCount').textContent = data.length;
-  document.getElementById('sessTbl').innerHTML = data.map(s => `
-    <tr>
-      <td><b>${esc(s.username)}</b><br><span class="badge ${s.role==='admin'?'badge-purple':'badge-gray'}">${s.role}</span></td>
-      <td style="font-size:12px;color:var(--ts)">${esc(s.ip||'—')}</td>
-      <td style="font-size:12px;color:var(--ts)">${fmtDate(s.created_at)}</td>
-      <td><button class="act-btn btn-red" onclick="revokeSession('${s.id}')">Revoke</button></td>
-    </tr>`).join('');
+async function loadSessions(){
+  const data=await api('/api/admin/sessions'); if(!data) return;
+  document.getElementById('sessCount').textContent=data.length;
+  document.getElementById('sessTbl').innerHTML=data.map(s=>`<tr>
+    <td><b>${esc(s.username)}</b><br><span class="badge ${s.role==='admin'?'badge-purple':'badge-gray'}">${s.role}</span></td>
+    <td style="font-size:12px;color:var(--ts)">${esc(s.ip||'—')}</td>
+    <td style="font-size:12px;color:var(--ts)">${fmtDate(s.created_at)}</td>
+    <td><button class="act-btn btn-red" onclick="revokeSession('${s.id}')">Revoke</button></td>
+  </tr>`).join('')||'<tr><td colspan="4" class="empty-state">Tidak ada sesi aktif</td></tr>';
 }
-async function revokeSession(id) {
-  await api('/api/admin/sessions/'+id, 'DELETE');
-  showToast('✅ Sesi di-revoke'); loadSessions();
-}
+async function revokeSession(id){await api('/api/admin/sessions/'+id,'DELETE');showToast('✅ Sesi di-revoke');loadSessions();}
 
-// ─── FLAGGED ─────────────────────────────────────────────
-async function loadFlagged() {
-  const data = await api('/api/admin/flagged');
-  if (!data) return;
-  document.getElementById('flagCount').textContent = data.length;
-  document.getElementById('flaggedBadge').textContent = data.length;
-  document.getElementById('flaggedBadge').style.display = data.length > 0 ? 'flex' : 'none';
-  document.getElementById('flagTbl').innerHTML = !data.length ? '<tr><td colspan="5" class="empty-state">Tidak ada pesan flagged 🎉</td></tr>'
-    : data.map(m => `
-    <tr>
+async function loadFlagged(){
+  const data=await api('/api/admin/flagged'); if(!data) return;
+  document.getElementById('flagCount').textContent=data.length;
+  document.getElementById('flaggedBadge').textContent=data.length;
+  document.getElementById('flaggedBadge').style.display=data.length>0?'flex':'none';
+  document.getElementById('flagTbl').innerHTML=!data.length
+    ?'<tr><td colspan="5" class="empty-state">🎉 Tidak ada pesan flagged</td></tr>'
+    :data.map(m=>`<tr>
       <td><div class="truncate" title="${esc(m.text)}">${esc(m.text||'—')}</div></td>
       <td><b>${esc(m.sender_name)}</b></td>
       <td style="font-size:12px;color:var(--ts)">${esc(m.room_name)}</td>
@@ -625,168 +789,109 @@ async function loadFlagged() {
       <td><button class="act-btn btn-red" onclick="deleteMsg('${m.id}')">Hapus</button></td>
     </tr>`).join('');
 }
-async function deleteMsg(id) {
-  await api('/api/admin/messages/'+id, 'DELETE');
-  showToast('✅ Pesan dihapus'); loadFlagged();
-}
+async function deleteMsg(id){await api('/api/admin/messages/'+id,'DELETE');showToast('✅ Pesan dihapus');loadFlagged();}
 
-// ─── AUDIT ───────────────────────────────────────────────
-async function loadAudit() {
-  const data = await api('/api/admin/audit');
-  if (!data) return;
-  const colorMap = {
-    login:'al-login', logout:'al-logout', ban_user:'al-ban', unban_user:'al-unban',
-    broadcast:'al-broadcast', delete_message:'al-delete', register:'al-register',
-  };
-  document.getElementById('auditTbl').innerHTML = !data.length ? '<tr><td colspan="6" class="empty-state">Belum ada log</td></tr>'
-    : data.map(a => `
-    <tr>
-      <td style="font-size:11.5px;color:var(--ts)">${fmtDate(a.created_at)}</td>
+async function loadAudit(){
+  const data=await api('/api/admin/audit'); if(!data) return;
+  const cm={login:'al-login',logout:'al-logout',ban_user:'al-ban',unban_user:'al-unban',broadcast:'al-broadcast',delete_message:'al-delete',register:'al-register',create_room:'al-create',delete_room:'al-delete',create_label:'al-create',delete_label:'al-delete',delete_bot:'al-ban',delete_all_bots:'al-ban'};
+  document.getElementById('auditTbl').innerHTML=!data.length?'<tr><td colspan="6" class="empty-state">Belum ada log</td></tr>'
+    :data.map(a=>`<tr>
+      <td style="font-size:11px;color:var(--ts)">${fmtDate(a.created_at)}</td>
       <td><b>${esc(a.username||'system')}</b></td>
-      <td><span class="${colorMap[a.action]||'al-other'}" style="font-weight:600">${esc(a.action)}</span></td>
-      <td style="font-size:12px;color:var(--ts);font-family:monospace">${a.target?esc(a.target.slice(0,14))+'..':'—'}</td>
+      <td><span class="${cm[a.action]||'al-other'}" style="font-weight:600;font-size:12px">${esc(a.action)}</span></td>
+      <td style="font-size:11px;color:var(--ts);font-family:monospace">${a.target?esc(a.target.slice(0,14))+'…':'—'}</td>
       <td style="font-size:12px;color:var(--ts)"><div class="truncate">${esc(a.detail||'—')}</div></td>
       <td style="font-size:11px;color:var(--ts)">${esc(a.ip||'—')}</td>
     </tr>`).join('');
 }
 
-// ─── BROKER ──────────────────────────────────────────────
-async function loadBroker() {
-  const d = await api('/api/admin/broker');
-  if (!d) return;
-  const s = d.status;
-
-  // FIX: map correct field names
-  document.getElementById('bs-pub').textContent = s.published ?? '—';
-  document.getElementById('bs-con').textContent = s.consumed  ?? '—';   // consumed not delivered
-  document.getElementById('bs-top').textContent = s.activeTopics ?? '—'; // not undefined
-  document.getElementById('bs-err').textContent = s.errors ?? '—';       // bonus: errors
-
-  // Mode badge
-  const mb = document.getElementById('brokerModeBadge');
-  if (s.mode && s.mode.includes('rabbitmq')) {
-    mb.textContent = '🐰 RabbitMQ'; mb.className = 'mode-badge badge-green';
-  } else {
-    mb.textContent = '⚡ In-Process'; mb.className = 'mode-badge badge-blue';
-  }
-
-  // Broker dot
-  document.getElementById('brokerDot').className = 'status-dot ' + (s.connected ? 'dot-green' : 'dot-red');
-
-  // Top topics
-  const max = Math.max(...(s.topTopics||[]).map(t => t.count), 1);
-  document.getElementById('topTopics').innerHTML = !s.topTopics?.length
-    ? '<div class="empty-state" style="padding:20px">Belum ada data</div>'
-    : s.topTopics.map(t => `
-      <div class="topic-row">
-        <span class="topic-name">${esc(t.topic)}</span>
-        <div class="topic-bar-wrap"><div class="topic-bar" style="width:${Math.round(t.count/max*100)}%"></div></div>
-        <span class="topic-count">${t.count}</span>
-      </div>`).join('');
-
-  // Recent events
-  const events = d.recentEvents || [];
-  const liveEl = document.getElementById('brokerLive');
-  if (!events.length) { liveEl.innerHTML = '<div class="empty-state">Belum ada events</div>'; }
-  else {
-    liveEl.innerHTML = events.map(e => `
-      <div class="live-event">
-        <span class="le-topic">${esc(e.topic)}</span>
-        <span class="le-payload">${esc(JSON.stringify(e.payload||{}).slice(0,60))}</span>
-        <span class="le-time">${fmtTime(e.timestamp)}</span>
-      </div>`).join('');
-  }
+async function loadBroker(){
+  const d=await api('/api/admin/broker'); if(!d) return;
+  const s=d.status;
+  document.getElementById('bs-pub').textContent=s.published??'—';
+  document.getElementById('bs-con').textContent=s.consumed??'—';
+  document.getElementById('bs-top').textContent=s.activeTopics??'—';
+  document.getElementById('bs-err').textContent=s.errors??'—';
+  const mb=document.getElementById('brokerModeBadge');
+  if(s.mode&&s.mode.includes('rabbitmq')){mb.textContent='🐰 RabbitMQ';mb.className='mode-badge badge-green';}
+  else{mb.textContent='⚡ In-Process';mb.className='mode-badge badge-blue';}
+  document.getElementById('brokerDot').className='status-dot '+(s.connected?'dot-green':'dot-red');
+  const max=Math.max(...(s.topTopics||[]).map(t=>t.count),1);
+  document.getElementById('topTopics').innerHTML=!s.topTopics?.length?'<div class="empty-state" style="padding:20px">Belum ada data</div>'
+    :s.topTopics.map(t=>`<div class="topic-row"><span class="topic-name">${esc(t.topic)}</span><div class="topic-bar-wrap"><div class="topic-bar" style="width:${Math.round(t.count/max*100)}%"></div></div><span class="topic-count">${t.count}</span></div>`).join('');
+  const events=d.recentEvents||[];
+  const liveEl=document.getElementById('brokerLive');
+  if(!events.length){liveEl.innerHTML='<div class="empty-state">Belum ada events</div>';}
+  else liveEl.innerHTML=events.map(e=>`<div class="live-event"><span class="le-topic">${esc(e.topic)}</span><span class="le-payload">${esc(JSON.stringify(e.payload||{}).slice(0,60))}</span><span class="le-time">${fmtTime(e.timestamp)}</span></div>`).join('');
 }
 
-// ─── BROADCAST ───────────────────────────────────────────
-async function loadBroadcast() {
-  const data = await api('/api/admin/audit');
-  const bcast = (data||[]).filter(a => a.action === 'broadcast').slice(0, 20);
-  document.getElementById('bcastHistory').innerHTML = !bcast.length ? '<tr><td colspan="3" class="empty-state">Belum ada broadcast</td></tr>'
-    : bcast.map(a => `
-    <tr>
-      <td><div class="truncate">${esc(a.detail||'—')}</div></td>
-      <td><b>${esc(a.username||'admin')}</b></td>
-      <td style="font-size:12px;color:var(--ts)">${fmtDate(a.created_at)}</td>
-    </tr>`).join('');
+async function loadBroadcast(){
+  const data=await api('/api/admin/audit');
+  const bcast=(data||[]).filter(a=>a.action==='broadcast').slice(0,20);
+  document.getElementById('bcastHistory').innerHTML=!bcast.length?'<tr><td colspan="3" class="empty-state">Belum ada broadcast</td></tr>'
+    :bcast.map(a=>`<tr><td><div class="truncate">${esc(a.detail||'—')}</div></td><td><b>${esc(a.username||'admin')}</b></td><td style="font-size:12px;color:var(--ts)">${fmtDate(a.created_at)}</td></tr>`).join('');
+}
+async function sendBroadcast(){
+  const msg=document.getElementById('bcastMsg').value.trim();
+  if(!msg){showToast('⚠️ Tulis pesan dulu');return;}
+  await api('/api/admin/broadcast','POST',{message:msg});
+  document.getElementById('bcastMsg').value=''; showToast('📢 Broadcast terkirim!'); loadBroadcast();
 }
 
-async function sendBroadcast() {
-  const msg = document.getElementById('bcastMsg').value.trim();
-  if (!msg) { showToast('⚠️ Tulis pesan dulu'); return; }
-  await api('/api/admin/broadcast', 'POST', { message: msg });
-  document.getElementById('bcastMsg').value = '';
-  showToast('📢 Broadcast terkirim!');
-  loadBroadcast();
-}
-
-// ─── ADMIN WEBSOCKET ─────────────────────────────────────
-function connectAdminSocket() {
-  adminSocket = io('/admin-ws', { auth: { token } });
-  adminSocket.on('connect', () => {
-    document.getElementById('connStatus').innerHTML = '<span class="status-dot dot-green"></span><span>Live</span>';
-  });
-  adminSocket.on('disconnect', () => {
-    document.getElementById('connStatus').innerHTML = '<span class="status-dot dot-red"></span><span>Terputus</span>';
-  });
-  adminSocket.on('broker_event', (ev) => {
-    liveEventCount++;
-    document.getElementById('liveCount').textContent = liveEventCount;
-    const liveEl = document.getElementById('brokerLive');
-    const empty = liveEl.querySelector('.empty-state');
-    if (empty) liveEl.innerHTML = '';
-    const row = document.createElement('div');
-    row.className = 'live-event';
-    row.innerHTML = `
-      <span class="le-topic">${esc(ev.topic)}</span>
-      <span class="le-payload">${esc(JSON.stringify(ev.payload||{}).slice(0,60))}</span>
-      <span class="le-time">${fmtTime(ev.timestamp)}</span>`;
-    liveEl.insertBefore(row, liveEl.firstChild);
-    if (liveEl.children.length > 80) liveEl.removeChild(liveEl.lastChild);
-    // Update broker stats if on broker panel
-    if (currentPanel === 'broker') {
-      const cur = parseInt(document.getElementById('bs-pub').textContent) || 0;
-      document.getElementById('bs-pub').textContent = cur + 1;
-    }
-  });
-}
-
-// ─── UTILS ───────────────────────────────────────────────
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
-
-function fmtDate(ts) {
-  if (!ts) return '—';
-  const d = new Date(ts * 1000);
-  return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short'}) + ' ' +
-    d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
-}
-function fmtTime(ts) {
-  if (!ts) return '—';
-  const d = new Date(ts);
-  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0') + ':' + d.getSeconds().toString().padStart(2,'0');
-}
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function openModal(id) { document.getElementById(id).classList.add('show'); }
-function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-document.querySelectorAll('.modal-ov').forEach(el => el.addEventListener('click', e => { if (e.target === el) el.classList.remove('show'); }));
-
-let toastT;
-function showToast(msg) {
-  const t = document.getElementById('toast'); t.textContent = msg;
-  t.classList.add('show'); clearTimeout(toastT);
-  toastT = setTimeout(() => t.classList.remove('show'), 3500);
-}
-
-async function api(path, method='GET', body=null) {
-  const opts = { method, headers: { Authorization: 'Bearer ' + token } };
-  if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+function connectAdminSocket(){
   try {
-    const r = await fetch(path, opts);
-    if (r.status === 401 || r.status === 403) { location.href = '/'; return null; }
-    return r.json();
-  } catch { return null; }
+    adminSocket=io('/admin-ws',{auth:{token}});
+    adminSocket.on('connect',()=>{document.getElementById('connStatus').innerHTML='<span class="status-dot dot-green"></span><span>Live</span>';});
+    adminSocket.on('disconnect',()=>{document.getElementById('connStatus').innerHTML='<span class="status-dot dot-red"></span><span>Terputus</span>';});
+    adminSocket.on('broker_event',(ev)=>{
+      liveEventCount++; document.getElementById('liveCount').textContent=liveEventCount;
+      const liveEl=document.getElementById('brokerLive');
+      const empty=liveEl.querySelector('.empty-state'); if(empty) liveEl.innerHTML='';
+      const row=document.createElement('div'); row.className='live-event';
+      row.innerHTML=`<span class="le-topic">${esc(ev.topic)}</span><span class="le-payload">${esc(JSON.stringify(ev.payload||{}).slice(0,60))}</span><span class="le-time">${fmtTime(ev.timestamp)}</span>`;
+      liveEl.insertBefore(row,liveEl.firstChild);
+      if(liveEl.children.length>80) liveEl.removeChild(liveEl.lastChild);
+    });
+  } catch(e){console.warn('Socket not available');}
 }
 
+let confirmCallback=null;
+function showConfirm(title,text,cb){
+  document.getElementById('confirmTitle').innerHTML=title;
+  document.getElementById('confirmText').innerHTML=text;
+  confirmCallback=cb;
+  document.getElementById('confirmOkBtn').onclick=async()=>{closeModal('confirmModal');if(confirmCallback)await confirmCallback();confirmCallback=null;};
+  openModal('confirmModal');
+}
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.modal-ov').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('show');}));
+
+function fmtDate(ts){
+  if(!ts) return '—';
+  const d=new Date(ts*1000);
+  return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short'})+' '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+}
+function fmtTime(ts){
+  if(!ts) return '—';
+  const d=new Date(ts);
+  return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')+':'+d.getSeconds().toString().padStart(2,'0');
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+let toastT;
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),3500);
+}
+async function api(path,method='GET',body=null){
+  const opts={method,headers:{Authorization:'Bearer '+token}};
+  if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}
+  try{
+    const r=await fetch(path,opts);
+    if(r.status===401||r.status===403){location.href='/';return null;}
+    return r.json();
+  }catch{return null;}
+}
 checkAuth();
 </script>
 </body>

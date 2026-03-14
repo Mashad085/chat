@@ -84,6 +84,22 @@ function applySchema() {
     created_at INTEGER DEFAULT (strftime('%s','now')),
     UNIQUE(user_id, friend_id)
   )`);
+  db.run(`CREATE TABLE IF NOT EXISTS labels (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    color TEXT DEFAULT '#00a884',
+    created_by TEXT,
+    created_at INTEGER DEFAULT (strftime('%s','now'))
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS room_labels (
+    room_id TEXT NOT NULL,
+    label_id TEXT NOT NULL,
+    PRIMARY KEY(room_id, label_id)
+  )`);
+  // Add description column to rooms if not exists
+  try { db.run(`ALTER TABLE rooms ADD COLUMN description TEXT`); } catch(e) {}
+  // Add label columns if not exists
+  db.run(`CREATE INDEX IF NOT EXISTS idx_room_labels ON room_labels(room_id)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_msg_room ON messages(room_id, created_at)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_audit ON audit_logs(created_at DESC)`);
   logger.info('[db] Schema applied');
@@ -263,4 +279,22 @@ function updatePassword(userId, newHash) {
   run('UPDATE users SET password=? WHERE id=?', [newHash, userId]);
 }
 
-module.exports = Object.assign(module.exports || {}, { FriendRepo, updateProfile, updatePassword });
+// ─── LABEL REPO ──────────────────────────────────────────
+const LabelRepo = {
+  getAll: () => query(`SELECT l.*, COUNT(rl.room_id) room_count
+    FROM labels l LEFT JOIN room_labels rl ON l.id=rl.label_id
+    GROUP BY l.id ORDER BY l.created_at DESC`),
+  create({ id, name, color, createdBy }) {
+    run('INSERT INTO labels(id,name,color,created_by) VALUES(?,?,?,?)', [id, name, color, createdBy]);
+  },
+  delete: (id) => {
+    run('DELETE FROM room_labels WHERE label_id=?', [id]);
+    run('DELETE FROM labels WHERE id=?', [id]);
+  },
+  getByRoom: (roomId) => query(`SELECT l.* FROM labels l JOIN room_labels rl ON l.id=rl.label_id WHERE rl.room_id=?`, [roomId]),
+  assignToRoom: (roomId, labelId) => run('INSERT OR IGNORE INTO room_labels(room_id,label_id) VALUES(?,?)', [roomId, labelId]),
+  removeFromRoom: (roomId, labelId) => run('DELETE FROM room_labels WHERE room_id=? AND label_id=?', [roomId, labelId]),
+  findById: (id) => queryOne('SELECT * FROM labels WHERE id=?', [id]),
+};
+
+module.exports = Object.assign(module.exports || {}, { LabelRepo });
