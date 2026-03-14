@@ -5,6 +5,20 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ChatApp">
+<meta name="application-name" content="ChatApp">
+<meta name="theme-color" content="#00a884">
+<meta name="msapplication-TileColor" content="#00a884">
+<meta name="msapplication-TileImage" content="/icons/icon-144.png">
+<meta name="description" content="Aplikasi chat real-time dengan status, saluran, dan toko">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144.png">
+<link rel="apple-touch-icon" sizes="128x128" href="/icons/icon-128.png">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/icons/icon-96.png">
 <title>ChatApp</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -1784,6 +1798,236 @@ history.pushState(null,'',location.href);
 document.querySelector('[onclick*="vStatus"]')?.addEventListener('click',()=>{loadStatus();});
 // Override nav tab for status
 const origSetNavTab=setNavTab;
+
+/* ═══════════════════════════════════════════════
+   PWA — Service Worker + Install + Notifications
+   ═══════════════════════════════════════════════ */
+
+let deferredInstallPrompt = null;
+let swRegistration = null;
+let pushSubscription = null;
+
+// ── Register Service Worker ──
+async function registerSW() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    swRegistration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    swRegistration.addEventListener('updatefound', () => {
+      const newWorker = swRegistration.installing;
+      newWorker?.addEventListener('statechange', () => {
+        if (newWorker.statechange === 'installed' && navigator.serviceWorker.controller) {
+          showToast('🔄 Update tersedia! Refresh untuk memperbarui.');
+        }
+      });
+    });
+    // Listen for messages from SW
+    navigator.serviceWorker.addEventListener('message', event => {
+      if (event.data?.type === 'NOTIFICATION_CLICK') {
+        // Navigate to chat if room specified
+        if (event.data.data?.roomId) {
+          const r = rooms.find(x => x.id === event.data.data.roomId);
+          if (r) openRoom(r.id);
+        }
+      }
+    });
+    console.log('[PWA] Service Worker registered');
+  } catch(e) {
+    console.warn('[PWA] SW registration failed:', e);
+  }
+}
+
+// ── PWA Install Prompt ──
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  // Show banner if not dismissed before
+  const dismissed = localStorage.getItem('pwa_install_dismissed');
+  if (!dismissed) {
+    setTimeout(() => {
+      document.getElementById('pwaInstallBanner').style.display = 'block';
+    }, 3000);
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('pwaInstallBanner').style.display = 'none';
+  deferredInstallPrompt = null;
+  showToast('✅ ChatApp berhasil dipasang!');
+});
+
+async function installPWA() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome === 'accepted') {
+    showToast('✅ Memasang ChatApp...');
+  }
+  deferredInstallPrompt = null;
+  document.getElementById('pwaInstallBanner').style.display = 'none';
+}
+
+function dismissInstall() {
+  document.getElementById('pwaInstallBanner').style.display = 'none';
+  localStorage.setItem('pwa_install_dismissed', '1');
+}
+
+// ── Notification Permission ──
+function showNotifPrompt() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') return;
+  if (Notification.permission === 'denied') return;
+  const dismissed = localStorage.getItem('notif_prompt_dismissed');
+  if (dismissed) return;
+  document.getElementById('notifPrompt').style.display = 'block';
+}
+
+async function requestNotifPermission() {
+  document.getElementById('notifPrompt').style.display = 'none';
+  if (!('Notification' in window)) { showToast('⚠️ Browser tidak mendukung notifikasi'); return; }
+  const permission = await Notification.requestPermission();
+  if (permission === 'granted') {
+    showToast('✅ Notifikasi diaktifkan!');
+    await subscribeToPush();
+  } else if (permission === 'denied') {
+    showToast('ℹ️ Notifikasi diblokir. Aktifkan di pengaturan browser.');
+  }
+}
+
+function dismissNotifPrompt() {
+  document.getElementById('notifPrompt').style.display = 'none';
+  localStorage.setItem('notif_prompt_dismissed', '1');
+}
+
+// ── Push Subscription ──
+async function subscribeToPush() {
+  if (!swRegistration) return;
+  if (!('PushManager' in window)) return;
+  try {
+    // Get VAPID public key from server
+    const resp = await api('/api/push/vapid-key');
+    if (!resp?.publicKey) return;
+
+    const sub = await swRegistration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(resp.publicKey),
+    });
+
+    // Save to server
+    await api('/api/push/subscribe', 'POST', { subscription: sub.toJSON() });
+    pushSubscription = sub;
+    console.log('[PWA] Push subscription saved');
+  } catch(e) {
+    console.warn('[PWA] Push subscribe failed:', e);
+  }
+}
+
+async function unsubscribeFromPush() {
+  if (pushSubscription) {
+    await pushSubscription.unsubscribe();
+    pushSubscription = null;
+  }
+  await api('/api/push/unsubscribe', 'DELETE');
+}
+
+// ── Utility: Convert VAPID key ──
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  return new Uint8Array([...raw].map(c => c.charCodeAt(0)));
+}
+
+// ── Show local notification when app is in focus ──
+function showLocalNotification(title, body, options = {}) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (document.visibilityState === 'visible') return; // App is open, don't notify
+  const notif = new Notification(title, {
+    body,
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-96.png',
+    tag: options.tag || 'chatapp',
+    ...options,
+  });
+  notif.onclick = () => { window.focus(); notif.close(); };
+}
+
+// ── Override initApp to add PWA init ──
+const _origInitApp = initApp;
+function initApp() {
+  _origInitApp();
+  // Register SW
+  registerSW();
+  // Show notif prompt after 5s
+  setTimeout(() => showNotifPrompt(), 5000);
+  // Try to subscribe if already granted
+  if (Notification.permission === 'granted') {
+    setTimeout(() => {
+      if (swRegistration) subscribeToPush();
+      else registerSW().then(() => subscribeToPush());
+    }, 2000);
+  }
+}
+
+// ── Intercept new_message to show local notification ──
+const _origConnectSocket = connectSocket;
+function connectSocket() {
+  _origConnectSocket();
+  // Patch socket after it's created (wait a tick)
+  setTimeout(() => {
+    if (!socket) return;
+    socket.on('new_message', msg => {
+      // Show local notification if app is not visible
+      if (msg.senderId !== me.id && document.visibilityState === 'hidden') {
+        showLocalNotification(msg.senderName || 'Pesan Baru', msg.text || '📎 Media', { tag: 'msg-'+msg.roomId });
+      }
+    });
+  }, 500);
+}
+
+// ── Online / Offline banner ──
+function showNetworkStatus(online) {
+  const msg = online ? '✅ Kembali online' : '⚠️ Tidak ada koneksi internet';
+  showToast(msg, online ? 2500 : 0);
+}
+window.addEventListener('online',  () => showNetworkStatus(true));
+window.addEventListener('offline', () => showNetworkStatus(false));
+
+// Register SW immediately (before login) so it caches shell
+registerSW();
+
 </script>
+
+<!-- PWA INSTALL BANNER -->
+<div id="pwaInstallBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:900;background:var(--bg2);border-top:1px solid rgba(0,168,132,.3);padding:14px 16px calc(14px + var(--safe-bot));animation:slideUp .3s ease">
+  <div style="display:flex;align-items:center;gap:12px">
+    <img src="/icons/icon-72.png" style="width:48px;height:48px;border-radius:12px;flex-shrink:0" alt="">
+    <div style="flex:1;min-width:0">
+      <div style="font-size:14px;font-weight:700">Install ChatApp</div>
+      <div style="font-size:12px;color:var(--ts);margin-top:1px">Pasang di layar utama untuk akses lebih cepat</div>
+    </div>
+    <button onclick="installPWA()" style="background:var(--acc);color:#fff;border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">Pasang</button>
+    <button onclick="dismissInstall()" style="background:none;border:none;color:var(--ts);cursor:pointer;padding:4px;flex-shrink:0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- NOTIFICATION PERMISSION PROMPT -->
+<div id="notifPrompt" style="display:none;position:fixed;top:calc(64px + var(--safe-top));left:50%;transform:translateX(-50%);z-index:800;background:var(--bg2);border:1px solid rgba(0,168,132,.3);border-radius:16px;padding:16px 18px;width:min(360px,92vw);box-shadow:0 8px 32px rgba(0,0,0,.5);animation:fadeUp .3s ease">
+  <div style="display:flex;align-items:flex-start;gap:12px">
+    <div style="width:40px;height:40px;border-radius:12px;background:rgba(0,168,132,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2" width="22" height="22"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px">Aktifkan Notifikasi</div>
+      <div style="font-size:12.5px;color:var(--ts);line-height:1.5;margin-bottom:12px">Dapatkan notifikasi saat ada pesan baru, meski ChatApp sedang tertutup.</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="requestNotifPermission()" style="flex:1;background:var(--acc);color:#fff;border:none;border-radius:9px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Izinkan</button>
+        <button onclick="dismissNotifPrompt()" style="background:var(--bg3);color:var(--ts);border:none;border-radius:9px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Nanti</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
